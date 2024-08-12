@@ -17,6 +17,7 @@ struct Piece createPiece(char namePrefix, char nameSuffix)
   piece.cellNo = BASE;
   piece.captured = 0;
   strncpy(piece.name, name, sizeof(piece.name) - 1);
+  piece.name[sizeof(piece.name) - 1] = '\0'; //explicit null termination
   piece.clockWise = true;
   piece.block = false;
   piece.noOfApproachPasses = 0;
