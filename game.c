@@ -238,6 +238,40 @@ bool getDirectionFromToss()
   return clockWise;
 }
 
+void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO])
+{
+  enum Color color = getPieceColor(piece->name[0]);
+  char *pieceColor = getName(color);
+  int enemyCount = getEnemyCountOfCell(cell, color);
+
+  if (!isBlocked(1, enemyCount))
+  {
+    int cellIndex;
+    for (cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
+    {
+      if (cell[cellIndex] != NULL && cell[cellIndex]->name[0] != piece->name[0])
+      {
+        cell[cellIndex]->cellNo = BASE;
+        piece->captured += 1;
+        break;
+      }
+    }
+
+    cell[cellIndex == PLAYER_NO ? cellIndex - 1 : cellIndex] = piece;
+    piece->cellNo = player->startIndex;
+    piece->clockWise = getDirectionFromToss();
+
+    int noOfPiecesInBase = getNoOfPiecesInBase(player);
+
+    printf("%s moves piece %s to the starting point\n", pieceColor, piece->name);
+    printf("%s player now has %d/4 of pieces on the board and %d/4 pieces on the base\n\n",
+      pieceColor,
+      PLAYER_NO - noOfPiecesInBase,
+      noOfPiecesInBase
+    );
+  }
+}
+
 /* Functions for game loop
  */
 

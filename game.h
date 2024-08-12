@@ -26,6 +26,7 @@ bool isCellEmpty(struct Piece *cells[PLAYER_NO]);
 // game methods/actions
 int rollDice();
 bool getDirectionFromToss();
+void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO]);
 
 // game loops
 void initialGameLoop(struct Player *players, struct Game *game);
