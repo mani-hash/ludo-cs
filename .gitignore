@@ -1,0 +1,4 @@
+*.out
+game.sh
+tests.c
+tests.sh
