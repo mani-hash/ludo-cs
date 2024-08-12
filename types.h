@@ -10,4 +10,11 @@
 #define APPROACH_DIFFERENCE 2
 #define MYSTERY_LOCATIONS 6
 
+enum Color {
+  YELLOW,
+  BLUE,
+  RED,
+  GREEN
+};
+
 #endif // !TYPES_H
