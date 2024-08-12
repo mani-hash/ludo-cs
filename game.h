@@ -28,6 +28,10 @@ int rollDice();
 bool getDirectionFromToss();
 void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO]);
 
+// Output functions
+void displayPlayerStatusAfterRound(struct Player *players, struct Game *game);
+
+
 // game loops
 void initialGameLoop(struct Player *players, struct Game *game);
 

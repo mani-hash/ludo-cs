@@ -272,6 +272,47 @@ void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell
   }
 }
 
+/* Output Display functions
+ */
+
+void displayPlayerStatusAfterRound(struct Player *players, struct Game *game)
+{
+  printf("Round %d is over. Status of each player is displayed below:\n\n", game->rounds);
+  for (int orderIndex = 0; orderIndex < PIECE_NO; orderIndex++)
+  {
+    int playerIndex = game->order[orderIndex];
+    char *playerName = getName(players[playerIndex].color);
+    int noOfPiecesInBase = getNoOfPiecesInBase(&players[playerIndex]);
+
+    printf("%s player has %d/4 of pieces on the board and %d/4 pieces on the base\n",
+      playerName,
+      PLAYER_NO - noOfPiecesInBase,
+      noOfPiecesInBase
+    );
+    printf("=======================================================================\n");
+    printf("Location of pieces of %s\n", playerName);
+    printf("=======================================================================\n");
+
+    for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
+    {
+      struct Piece piece = players[playerIndex].pieces[pieceIndex];
+
+      switch (piece.cellNo)
+      {
+        case BASE:
+          printf("Piece %s -> Base\n", piece.name);
+          break;
+        case HOME:
+          printf("Piece %s -> Home\n", piece.name);
+          break;
+        default:
+          printf("Piece %s -> L%d\n", piece.name, piece.cellNo);
+      }
+      printf("\n");
+    }
+  }
+}
+
 /* Functions for game loop
  */
 
