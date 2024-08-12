@@ -17,4 +17,12 @@ enum Color {
   GREEN
 };
 
+enum Locations {
+  BASE = -1,
+  HOME = -2,
+  BHAWANA = 9,
+  KOTUWA = 27,
+  PITA_KOTUWA = 46,
+};
+
 #endif // !TYPES_H
