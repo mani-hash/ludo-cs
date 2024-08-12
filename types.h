@@ -48,4 +48,15 @@ struct MysteryEffects
   int diceDivider;
 };
 
+struct Piece
+{
+  int cellNo;
+  int captured;
+  char name[3];
+  bool clockWise;
+  bool block;
+  int noOfApproachPasses;
+  struct MysteryEffects effect;
+};
+
 #endif // !TYPES_H
