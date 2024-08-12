@@ -61,3 +61,32 @@ struct Player* initializePlayers()
 
   return players;
 }
+
+void initializePlayerOrder(struct Game *game, int maxPlayerIndex)
+{
+  //calculate difference to offset 
+  //order array index to initial index 
+  //(prevent array out of bound error)
+  int difference;
+
+  switch (maxPlayerIndex)
+  {
+    case 1:
+      difference = 3;
+      break;
+    case 2:
+      difference = 2;
+      break;
+    case 3:
+      difference = 1;
+      break;
+    default:
+      difference = 0;
+  }
+
+  game->order[0] = maxPlayerIndex;
+  for (int order = 1; order < PLAYER_NO; order++)
+  {
+    game->order[order] = (maxPlayerIndex+order >= PLAYER_NO) ? order - difference : maxPlayerIndex+order;
+  }
+}
