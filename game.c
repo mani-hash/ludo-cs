@@ -139,3 +139,18 @@ int getStartIndex(enum Color color)
       return BLUE_START;
   }
 }
+
+int getApproachIndex(enum Color color)
+{
+  switch (color)
+  {
+    case RED:
+      return RED_APPROACH;
+    case GREEN:
+      return GREEN_APPROACH;
+    case YELLOW:
+      return YELLOW_APPROACH;
+    case BLUE:
+      return BLUE_APPROACH;
+  }
+}
