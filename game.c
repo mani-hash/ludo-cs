@@ -124,3 +124,18 @@ char* getName(enum Color color)
       return "Blue";
   }
 }
+
+int getStartIndex(enum Color color)
+{
+  switch (color)
+  {
+    case RED:
+      return RED_START;
+    case GREEN:
+      return GREEN_START;
+    case YELLOW:
+      return YELLOW_START;
+    case BLUE:
+      return BLUE_START;
+  }
+}
