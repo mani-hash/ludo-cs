@@ -44,6 +44,8 @@ void playGame()
         );
     }
     
+    printf("\n");
+
     // Seed the random number generator
     srand(time(NULL));
 
