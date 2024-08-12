@@ -59,4 +59,14 @@ struct Piece
   struct MysteryEffects effect;
 };
 
+struct Game
+{
+  int rounds;
+  int mysteryCellNo;
+  int mysteryRounds;
+  int order[PLAYER_NO];
+  int win[PLAYER_NO];
+  int prevMysteryCells[MAX_STANDARD_CELL];
+};
+
 #endif // !TYPES_H
