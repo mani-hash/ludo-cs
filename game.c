@@ -90,3 +90,21 @@ void initializePlayerOrder(struct Game *game, int maxPlayerIndex)
     game->order[order] = (maxPlayerIndex+order >= PLAYER_NO) ? order - difference : maxPlayerIndex+order;
   }
 }
+
+/* Helper methods
+ */
+
+enum Color getPieceColor(char colorLetter)
+{
+  switch (colorLetter)
+  {
+    case 'R':
+      return RED;
+    case 'G':
+      return GREEN;
+    case 'Y':
+      return YELLOW;
+    case 'B':
+      return BLUE;
+  }
+}
