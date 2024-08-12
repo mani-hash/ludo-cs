@@ -25,4 +25,11 @@ enum Locations {
   PITA_KOTUWA = 46,
 };
 
+enum StartLocations {
+  YELLOW_START = 0,
+  BLUE_START = 13,
+  RED_START = 26,
+  GREEN_START = 39,
+};
+
 #endif // !TYPES_H
