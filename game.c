@@ -154,3 +154,17 @@ int getApproachIndex(enum Color color)
       return BLUE_APPROACH;
   }
 }
+
+int getNoOfPiecesInBase(struct Player *player)
+{
+  int count = 0;
+  for (int pieceIndex = 0; pieceIndex < PLAYER_NO; pieceIndex++)
+  {
+    if (player->pieces[pieceIndex].cellNo == BASE)
+    {
+      count++;
+    }
+  }
+
+  return count;
+}
