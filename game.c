@@ -196,3 +196,12 @@ int getEnemyCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor)
 
   return count;
 }
+
+bool isBlocked(int playerPieceCount, int enemyPieceCount)
+{
+  if (enemyPieceCount > playerPieceCount)
+  {
+    return true;
+  }
+  return false;
+}
