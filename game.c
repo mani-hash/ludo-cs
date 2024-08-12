@@ -46,3 +46,18 @@ struct Player createPlayer(int start, char namePrefix, enum Color color)
 
   return player;
 }
+
+struct Player* initializePlayers()
+{
+  struct Player *players = (struct Player*)malloc(PLAYER_NO * sizeof(struct Player));
+
+  players[0] = createPlayer(YELLOW_START, 'Y', YELLOW);
+
+  players[1] = createPlayer(BLUE_START, 'B', BLUE);
+
+  players[2] = createPlayer(RED_START, 'R', RED);
+
+  players[3] = createPlayer(GREEN_START, 'G', GREEN);
+
+  return players;
+}
