@@ -205,3 +205,17 @@ bool isBlocked(int playerPieceCount, int enemyPieceCount)
   }
   return false;
 }
+
+// Check if piece is occupied in the current cell
+bool isCellEmpty(struct Piece *cells[PLAYER_NO])
+{
+  for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
+  {
+    if (cells[cellIndex] != NULL)
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
