@@ -69,4 +69,11 @@ struct Game
   int prevMysteryCells[MAX_STANDARD_CELL];
 };
 
+struct Player
+{
+  int startIndex;
+  struct Piece pieces[4];
+  enum Color color;
+};
+
 #endif // !TYPES_H
