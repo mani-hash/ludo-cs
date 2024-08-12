@@ -230,6 +230,14 @@ int rollDice()
   return diceNumber;
 }
 
+// Coin toss
+bool getDirectionFromToss()
+{
+  bool clockWise = rand() % 2;
+
+  return clockWise;
+}
+
 /* Functions for game loop
  */
 
