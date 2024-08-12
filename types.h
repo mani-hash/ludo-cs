@@ -39,4 +39,13 @@ enum ApproachLocations {
   GREEN_APPROACH = GREEN_START - APPROACH_DIFFERENCE
 };
 
+struct MysteryEffects
+{
+  bool effectActive;
+  bool pieceActive;
+  int effectActiveRounds;
+  int diceMultiplier;
+  int diceDivider;
+};
+
 #endif // !TYPES_H
