@@ -168,3 +168,13 @@ int getNoOfPiecesInBase(struct Player *player)
 
   return count;
 }
+
+bool canMoveToBoard(int diceNumber)
+{
+  if (diceNumber == 6)
+  {
+    return true;
+  }
+
+  return false;
+}
