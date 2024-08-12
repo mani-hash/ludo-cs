@@ -90,3 +90,132 @@ void initializePlayerOrder(struct Game *game, int maxPlayerIndex)
     game->order[order] = (maxPlayerIndex+order >= PLAYER_NO) ? order - difference : maxPlayerIndex+order;
   }
 }
+
+/* Helper methods
+ */
+
+enum Color getPieceColor(char colorLetter)
+{
+  switch (colorLetter)
+  {
+    case 'R':
+      return RED;
+    case 'G':
+      return GREEN;
+    case 'Y':
+      return YELLOW;
+    case 'B':
+      return BLUE;
+  }
+}
+
+// Get name of the current player
+char* getName(enum Color color)
+{
+  switch (color)
+  {
+    case RED:
+      return "Red";
+    case GREEN:
+      return "Green";
+    case YELLOW:
+      return "Yellow";
+    case BLUE:
+      return "Blue";
+  }
+}
+
+int getStartIndex(enum Color color)
+{
+  switch (color)
+  {
+    case RED:
+      return RED_START;
+    case GREEN:
+      return GREEN_START;
+    case YELLOW:
+      return YELLOW_START;
+    case BLUE:
+      return BLUE_START;
+  }
+}
+
+int getApproachIndex(enum Color color)
+{
+  switch (color)
+  {
+    case RED:
+      return RED_APPROACH;
+    case GREEN:
+      return GREEN_APPROACH;
+    case YELLOW:
+      return YELLOW_APPROACH;
+    case BLUE:
+      return BLUE_APPROACH;
+  }
+}
+
+int getNoOfPiecesInBase(struct Player *player)
+{
+  int count = 0;
+  for (int pieceIndex = 0; pieceIndex < PLAYER_NO; pieceIndex++)
+  {
+    if (player->pieces[pieceIndex].cellNo == BASE)
+    {
+      count++;
+    }
+  }
+
+  return count;
+}
+
+bool canMoveToBoard(int diceNumber)
+{
+  if (diceNumber == 6)
+  {
+    return true;
+  }
+
+  return false;
+}
+
+int getEnemyCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor)
+{
+  int count = 0;
+  for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
+  {
+    if (
+      cells[cellIndex] != NULL 
+      &&
+      getPieceColor(cells[cellIndex]->name[0]) != playerColor
+    )
+    {
+      count++;
+    }
+  }
+
+  return count;
+}
+
+bool isBlocked(int playerPieceCount, int enemyPieceCount)
+{
+  if (enemyPieceCount > playerPieceCount)
+  {
+    return true;
+  }
+  return false;
+}
+
+// Check if piece is occupied in the current cell
+bool isCellEmpty(struct Piece *cells[PLAYER_NO])
+{
+  for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
+  {
+    if (cells[cellIndex] != NULL)
+    {
+      return false;
+    }
+  }
+
+  return true;
+}

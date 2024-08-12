@@ -28,7 +28,7 @@ void playGame()
 
     struct Piece *homeStraight[PLAYER_NO][MAX_HOME_STRAIGHT / PIECE_NO] = {NULL};
 
-    struct Player* players = initializePlayers();
+    struct Player *players = initializePlayers();
 
     // Seed the random number generator
     srand(time(NULL));
