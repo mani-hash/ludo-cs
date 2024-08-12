@@ -47,5 +47,7 @@ void playGame()
     // Seed the random number generator
     srand(time(NULL));
 
+    initialGameLoop(players, &game);
+    
     free(players);
 }
