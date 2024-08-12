@@ -178,3 +178,21 @@ bool canMoveToBoard(int diceNumber)
 
   return false;
 }
+
+int getEnemyCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor)
+{
+  int count = 0;
+  for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
+  {
+    if (
+      cells[cellIndex] != NULL 
+      &&
+      getPieceColor(cells[cellIndex]->name[0]) != playerColor
+    )
+    {
+      count++;
+    }
+  }
+
+  return count;
+}
