@@ -342,3 +342,49 @@ void initialGameLoop(struct Player *players, struct Game *game)
     getName(players[game->order[3]].color)
   );
 }
+
+void mainGameLoop(struct Player *players, struct Game *game, struct Piece *standardCells[][PLAYER_NO], struct Piece *homeStraight[][MAX_HOME_STRAIGHT/PLAYER_NO])
+{
+  // test counter
+  int test = 0;
+
+  while (true)
+  {
+    game->rounds += 1;
+    printf("=============== Round %d ==============\n\n", game->rounds);
+
+    for (int orderIndex = 0; orderIndex < PLAYER_NO; orderIndex++)
+    {
+      int playerIndex = game->order[orderIndex];
+      int diceNumber = rollDice();
+      int noOfPiecesInBase = getNoOfPiecesInBase(&players[playerIndex]);
+
+      printf("%s player rolled %d\n\n", getName(players[playerIndex].color), diceNumber);
+
+      // game loop if all pieces are still in base
+      if (noOfPiecesInBase == PLAYER_NO && canMoveToBoard(diceNumber))
+      {
+        moveFromBase(&players[playerIndex], &players[playerIndex].pieces[0], standardCells[players[playerIndex].startIndex]);
+        // implement re throw functionalities (later)
+
+        // while (canMoveToBoard(diceNumber))
+        // {
+        //  diceNumber = rollDice();
+        // }
+        // printf("%s is moving %s\n", getName(players[playerIndex].color), players[playerIndex].pieces[0].clockWise ? "clockwise" : "anti-clockwise");
+      }
+    }
+
+    displayPlayerStatusAfterRound(players, game);
+    
+    printf("\n");
+    // test incremental counter
+    test++;
+
+    //test loop stop
+    if (test >= 1)
+    {
+      break;
+    }
+  }
+}

@@ -34,5 +34,6 @@ void displayPlayerStatusAfterRound(struct Player *players, struct Game *game);
 
 // game loops
 void initialGameLoop(struct Player *players, struct Game *game);
+void mainGameLoop(struct Player *players, struct Game *game, struct Piece *standardCells[][PLAYER_NO], struct Piece *homeStraight[][MAX_HOME_STRAIGHT/PLAYER_NO]);
 
 #endif // !GAME
