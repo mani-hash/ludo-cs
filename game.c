@@ -220,3 +220,13 @@ bool isCellEmpty(struct Piece *cells[PLAYER_NO])
 
   return true;
 }
+
+/* Game methods/actions
+ */
+
+int rollDice()
+{
+  int diceNumber = (rand() % 6) + 1;
+  return diceNumber;
+}
+
