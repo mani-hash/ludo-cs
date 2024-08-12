@@ -230,6 +230,89 @@ int rollDice()
   return diceNumber;
 }
 
+// Coin toss
+bool getDirectionFromToss()
+{
+  bool clockWise = rand() % 2;
+
+  return clockWise;
+}
+
+void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO])
+{
+  enum Color color = getPieceColor(piece->name[0]);
+  char *pieceColor = getName(color);
+  int enemyCount = getEnemyCountOfCell(cell, color);
+
+  if (!isBlocked(1, enemyCount))
+  {
+    int cellIndex;
+    for (cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
+    {
+      if (cell[cellIndex] != NULL && cell[cellIndex]->name[0] != piece->name[0])
+      {
+        cell[cellIndex]->cellNo = BASE;
+        piece->captured += 1;
+        break;
+      }
+    }
+
+    cell[cellIndex == PLAYER_NO ? cellIndex - 1 : cellIndex] = piece;
+    piece->cellNo = player->startIndex;
+    piece->clockWise = getDirectionFromToss();
+
+    int noOfPiecesInBase = getNoOfPiecesInBase(player);
+
+    printf("%s moves piece %s to the starting point\n", pieceColor, piece->name);
+    printf("%s player now has %d/4 of pieces on the board and %d/4 pieces on the base\n\n",
+      pieceColor,
+      PLAYER_NO - noOfPiecesInBase,
+      noOfPiecesInBase
+    );
+  }
+}
+
+/* Output Display functions
+ */
+
+void displayPlayerStatusAfterRound(struct Player *players, struct Game *game)
+{
+  printf("Round %d is over. Status of each player is displayed below:\n\n", game->rounds);
+  for (int orderIndex = 0; orderIndex < PIECE_NO; orderIndex++)
+  {
+    int playerIndex = game->order[orderIndex];
+    char *playerName = getName(players[playerIndex].color);
+    int noOfPiecesInBase = getNoOfPiecesInBase(&players[playerIndex]);
+
+    printf("%s player has %d/4 of pieces on the board and %d/4 pieces on the base\n",
+      playerName,
+      PLAYER_NO - noOfPiecesInBase,
+      noOfPiecesInBase
+    );
+    printf("=======================================================================\n");
+    printf("Location of pieces of %s\n", playerName);
+    printf("=======================================================================\n");
+
+    for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
+    {
+      struct Piece piece = players[playerIndex].pieces[pieceIndex];
+
+      switch (piece.cellNo)
+      {
+        case BASE:
+          printf("Piece %s -> Base\n", piece.name);
+          break;
+        case HOME:
+          printf("Piece %s -> Home\n", piece.name);
+          break;
+        default:
+          printf("Piece %s -> L%d\n", piece.name, piece.cellNo);
+      }
+      printf("\n");
+    }
+  }
+}
+
 /* Functions for game loop
  */
 
@@ -258,4 +341,50 @@ void initialGameLoop(struct Player *players, struct Game *game)
     getName(players[game->order[2]].color),
     getName(players[game->order[3]].color)
   );
+}
+
+void mainGameLoop(struct Player *players, struct Game *game, struct Piece *standardCells[][PLAYER_NO], struct Piece *homeStraight[][MAX_HOME_STRAIGHT/PLAYER_NO])
+{
+  // test counter
+  int test = 0;
+
+  while (true)
+  {
+    game->rounds += 1;
+    printf("=============== Round %d ==============\n\n", game->rounds);
+
+    for (int orderIndex = 0; orderIndex < PLAYER_NO; orderIndex++)
+    {
+      int playerIndex = game->order[orderIndex];
+      int diceNumber = rollDice();
+      int noOfPiecesInBase = getNoOfPiecesInBase(&players[playerIndex]);
+
+      printf("%s player rolled %d\n\n", getName(players[playerIndex].color), diceNumber);
+
+      // game loop if all pieces are still in base
+      if (noOfPiecesInBase == PLAYER_NO && canMoveToBoard(diceNumber))
+      {
+        moveFromBase(&players[playerIndex], &players[playerIndex].pieces[0], standardCells[players[playerIndex].startIndex]);
+        // implement re throw functionalities (later)
+
+        // while (canMoveToBoard(diceNumber))
+        // {
+        //  diceNumber = rollDice();
+        // }
+        // printf("%s is moving %s\n", getName(players[playerIndex].color), players[playerIndex].pieces[0].clockWise ? "clockwise" : "anti-clockwise");
+      }
+    }
+
+    displayPlayerStatusAfterRound(players, game);
+    
+    printf("\n");
+    // test incremental counter
+    test++;
+
+    //test loop stop
+    if (test >= 1)
+    {
+      break;
+    }
+  }
 }

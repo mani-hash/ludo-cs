@@ -44,10 +44,14 @@ void playGame()
         );
     }
     
+    printf("\n");
+
     // Seed the random number generator
     srand(time(NULL));
 
     initialGameLoop(players, &game);
     
+    mainGameLoop(players, &game, standardCells, homeStraight);
+
     free(players);
 }
