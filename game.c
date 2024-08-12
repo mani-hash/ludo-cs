@@ -108,3 +108,19 @@ enum Color getPieceColor(char colorLetter)
       return BLUE;
   }
 }
+
+// Get name of the current player
+char* getName(enum Color color)
+{
+  switch (color)
+  {
+    case RED:
+      return "Red";
+    case GREEN:
+      return "Green";
+    case YELLOW:
+      return "Yellow";
+    case BLUE:
+      return "Blue";
+  }
+}
