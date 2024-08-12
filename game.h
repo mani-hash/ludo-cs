@@ -23,4 +23,10 @@ int getEnemyCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor);
 bool isBlocked(int playerPieceCount, int enemyPieceCount);
 bool isCellEmpty(struct Piece *cells[PLAYER_NO]);
 
+// game methods/actions
+int rollDice();
+
+// game loops
+void initialGameLoop(struct Player *players, struct Game *game);
+
 #endif // !GAME
