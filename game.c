@@ -30,3 +30,19 @@ struct Piece createPiece(char namePrefix, char nameSuffix)
 
   return piece;
 }
+
+struct Player createPlayer(int start, char namePrefix, enum Color color)
+{
+  struct Player player = {
+    start,
+    {
+      createPiece(namePrefix, '1'),
+      createPiece(namePrefix, '2'),
+      createPiece(namePrefix, '3'),
+      createPiece(namePrefix, '4')
+    },
+    color
+  };
+
+  return player;
+}
