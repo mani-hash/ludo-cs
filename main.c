@@ -51,5 +51,7 @@ void playGame()
 
     initialGameLoop(players, &game);
     
+    mainGameLoop(players, &game, standardCells, homeStraight);
+
     free(players);
 }
