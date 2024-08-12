@@ -27,4 +27,7 @@ void playGame()
     struct Piece *standardCells[MAX_STANDARD_CELL][PIECE_NO] = {NULL};
 
     struct Piece *homeStraight[PLAYER_NO][MAX_HOME_STRAIGHT / PIECE_NO] = {NULL};
+
+    // Seed the random number generator
+    srand(time(NULL));
 }
