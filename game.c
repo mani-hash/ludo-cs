@@ -230,3 +230,32 @@ int rollDice()
   return diceNumber;
 }
 
+/* Functions for game loop
+ */
+
+void initialGameLoop(struct Player *players, struct Game *game)
+{
+  int max = -1;
+  int maxPlayerIndex = -1;
+
+  // find the player with highest roll
+  for (int playerIndex = 0; playerIndex < PLAYER_NO; playerIndex++)
+  { 
+    int diceNumber = rollDice();
+    printf("%s rolls %d\n", getName(players[playerIndex].color), diceNumber);
+    if (diceNumber > max)
+    {
+      max = diceNumber;
+      maxPlayerIndex = playerIndex;
+    }
+  }
+
+  printf("\n%s player has the highest roll and will begin the game\n", getName(players[maxPlayerIndex].color));
+  initializePlayerOrder(game, maxPlayerIndex);
+  printf("The order of single round is %s, %s, %s, and %s\n\n", 
+    getName(players[game->order[0]].color),
+    getName(players[game->order[1]].color),
+    getName(players[game->order[2]].color),
+    getName(players[game->order[3]].color)
+  );
+}
