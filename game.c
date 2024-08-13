@@ -314,6 +314,47 @@ void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PLAYER_NO])
   while (repeat);
 }
 
+void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece)
+{
+  switch (mysteryEffect)
+  {
+    case 1: // bhawana
+      int energy = rand() % 2;
+      piece->effect.effectActive = true;
+      piece->effect.effectActiveRounds = 4;
+
+      if (energy)
+      {
+        piece->effect.diceMultiplier = 2;  
+      }
+      else
+      {
+        piece->effect.diceDivider = 2;
+      }
+
+      break;
+    case 2: // kotuwa
+      piece->effect.effectActive = true;
+      piece->effect.pieceActive = false;
+      piece->effect.effectActiveRounds = 4;
+      break;
+    case 3: // pita kotuwa
+      if (piece->clockWise)
+      {
+        piece->clockWise = false;
+      }
+      else
+      {
+        piece->effect.effectActive = true;
+        piece->effect.pieceActive = false;
+        piece->effect.effectActiveRounds = 4; 
+      }
+      break;
+  }
+
+  piece->cellNo = mysteryLocation;
+}
+
 /* Output Display functions
  */
 

@@ -29,6 +29,7 @@ bool getDirectionFromToss();
 int getMysteryEffect();
 void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO]);
 void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PLAYER_NO]);
+void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece);
 
 // Output functions
 void displayPlayerStatusAfterRound(struct Player *players, struct Game *game);
