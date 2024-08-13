@@ -221,6 +221,25 @@ bool isCellEmpty(struct Piece *cells[PLAYER_NO])
   return true;
 }
 
+int getMysteryLocation(int mysteryEffect, struct Piece *piece)
+{
+  switch (mysteryEffect)
+  {
+    case 1:
+      return BHAWANA;
+    case 2:
+      return KOTUWA;
+    case 3:
+      return PITA_KOTUWA;
+    case 4:
+      return BASE;
+    case 5:
+      return getStartIndex(piece->name[0]);
+    case 6:
+      return getApproachIndex(piece->name[0]);
+  }
+}
+
 /* Game methods/actions
  */
 
@@ -360,9 +379,9 @@ void applyTeleportation(struct Piece *pieces[], int count, struct Piece *cells[]
   int mysteryEffect = getMysteryEffect();
   int mysteryLocation = getMysteryLocation(mysteryEffect, pieces[0]);
   enum Color color = getPieceColor(pieces[0]->name[0]);
-  int pieceCount = getPieceCountOfCell(cells[mysteryLocation], color);
+  int enemyCount = getEnemyCountOfCell(cells[mysteryLocation], color);
 
-  if (!isBlocked(count, pieceCount))
+  if (!isBlocked(count, enemyCount))
   {
     // the whole cell logic is wrong fix it 
     bool captured = false;

@@ -22,6 +22,7 @@ bool canMoveToBoard(int diceNumber);
 int getEnemyCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor);
 bool isBlocked(int playerPieceCount, int enemyPieceCount);
 bool isCellEmpty(struct Piece *cells[PLAYER_NO]);
+int getMysteryLocation(int mysteryEffect, struct Piece *piece);
 
 // game methods/actions
 int rollDice();
