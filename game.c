@@ -272,6 +272,42 @@ void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell
   }
 }
 
+void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PLAYER_NO])
+{
+  //very inefficient algorithm try to fix it later
+  if (game->prevMysteryCells[MAX_STANDARD_CELL-1] != -1)
+  {
+    printf("The maximum number of possible mystery cells are all used up!");
+    return;
+  }
+    
+  bool repeat = true;
+
+  do
+  {
+    int mysteryCell = (rand() % MAX_STANDARD_CELL - 1) + 1;
+
+    for (int cellIndex = 0; cellIndex < MAX_STANDARD_CELL; cellIndex++)
+    {
+      int curMysteryCell = game->prevMysteryCells[cellIndex];
+
+      if (curMysteryCell == -1 || cellIndex == MAX_STANDARD_CELL - 1)
+      {
+        game->prevMysteryCells[cellIndex] = mysteryCell;
+        game->mysteryCellNo = mysteryCell;
+        repeat = false;
+        break;
+      }
+
+      if (curMysteryCell == mysteryCell || !isCellEmpty(pieces[mysteryCell]))
+      {
+        break;
+      }
+    }
+  }
+  while (repeat);
+}
+
 /* Output Display functions
  */
 
