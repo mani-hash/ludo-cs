@@ -64,6 +64,7 @@ struct Game
   int rounds;
   int mysteryCellNo;
   int mysteryRounds;
+  int roundsTillMysteryCell;
   int order[PLAYER_NO];
   int win[PLAYER_NO];
   int prevMysteryCells[MAX_STANDARD_CELL];
