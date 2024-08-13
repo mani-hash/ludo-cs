@@ -240,6 +240,23 @@ int getMysteryLocation(int mysteryEffect, struct Piece *piece)
   }
 }
 
+bool boardHasPiece(struct Player *players)
+{
+  for (int playerIndex = 0; playerIndex < PLAYER_NO; playerIndex++)
+  {
+    for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
+    {
+      int cellNo = players[playerIndex].pieces[pieceIndex].cellNo;
+      if (cellNo != HOME && cellNo != BASE)
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 /* Game methods/actions
  */
 
@@ -459,6 +476,21 @@ void displayPlayerStatusAfterRound(struct Player *players, struct Game *game)
   }
 }
 
+void displayMysteryCellStatusAfterRound(int mysteryCellNo, int mysteryRounds)
+{
+  if (mysteryCellNo == -1)
+  {
+    printf("The required conditions for generating mystery cells have not been met");
+  }
+  else
+  {
+    printf("The mystery cell is at L%d and will be at that location for the next %d rounds",
+      mysteryCellNo,
+      mysteryRounds
+    );
+  }
+}
+
 /* Functions for game loop
  */
 
@@ -489,6 +521,33 @@ void initialGameLoop(struct Player *players, struct Game *game)
   );
 }
 
+void handleMysteryCellLoop(struct Game *game, struct Player *players, struct Piece *cells[][PIECE_NO])
+{
+  if (game->roundsTillMysteryCell <= 2)
+  {
+    if (boardHasPiece(players))
+    {
+      game->roundsTillMysteryCell += 1;
+    }
+  }
+  else
+  {
+    if (game->mysteryRounds == 0)
+    {
+      allocateMysteryCell(game, cells);
+      game->mysteryRounds = 4;
+      printf("A mystery cell has spawned in location L%d and will be at this location for the next %d rounds",
+        game->mysteryCellNo,
+        game->mysteryRounds
+      );
+    }
+    else
+    {
+      game->mysteryRounds -= 1;
+    }
+  }
+}
+
 void mainGameLoop(struct Player *players, struct Game *game, struct Piece *standardCells[][PLAYER_NO], struct Piece *homeStraight[][MAX_HOME_STRAIGHT/PLAYER_NO])
 {
   // test counter
@@ -498,6 +557,8 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
   {
     game->rounds += 1;
     printf("=============== Round %d ==============\n\n", game->rounds);
+
+    handleMysteryCellLoop(game, players, standardCells);
 
     for (int orderIndex = 0; orderIndex < PLAYER_NO; orderIndex++)
     {
@@ -522,13 +583,14 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
     }
 
     displayPlayerStatusAfterRound(players, game);
+    displayMysteryCellStatusAfterRound(game->mysteryCellNo, game->mysteryRounds);
     
     printf("\n");
     // test incremental counter
     test++;
 
     //test loop stop
-    if (test >= 1)
+    if (test >= 4)
     {
       break;
     }
