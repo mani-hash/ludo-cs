@@ -355,6 +355,50 @@ void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *pi
   piece->cellNo = mysteryLocation;
 }
 
+void applyTeleportation(struct Piece *pieces[], int count, struct Piece *cells[][PLAYER_NO])
+{
+  int mysteryEffect = getMysteryEffect();
+  int mysteryLocation = getMysteryLocation(mysteryEffect, pieces[0]);
+  enum Color color = getPieceColor(pieces[0]->name[0]);
+  int pieceCount = getPieceCountOfCell(cells[mysteryLocation], color);
+
+  if (!isBlocked(count, pieceCount))
+  {
+    // the whole cell logic is wrong fix it 
+    bool captured = false;
+    for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
+    {
+      // turn this if condition check into a function
+      if (cells[mysteryLocation][cellIndex] != NULL && cells[mysteryLocation][cellIndex]->name[0] != pieces[0]->name[0])
+      {
+        captured = true;
+        cells[mysteryLocation][cellIndex]->cellNo = BASE;
+      }
+    }
+
+    for (int pieceIndex = 0; pieceIndex < count; pieceIndex++)
+    {
+      if (captured)
+      {
+        pieces[pieceIndex]->captured += 1;
+      }
+
+      for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
+      {
+        if (&cells[mysteryLocation][cellIndex] != NULL)
+        {
+          continue;
+        }
+        else
+        {
+          cells[mysteryLocation][cellIndex] = pieces[pieceIndex];
+          break;
+        }
+      }
+    }
+  }
+}
+
 /* Output Display functions
  */
 
