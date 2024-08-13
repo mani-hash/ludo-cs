@@ -21,7 +21,7 @@ void playGame()
         0,
         {[0 ... PLAYER_NO - 1] = -1},
         {[0 ... PLAYER_NO - 1] = -1},
-        {[0 ... MAX_STANDARD_CELL - 1] = -1},
+        -1,
 
     };
 
