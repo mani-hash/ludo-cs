@@ -26,6 +26,7 @@ bool isCellEmpty(struct Piece *cells[PLAYER_NO]);
 // game methods/actions
 int rollDice();
 bool getDirectionFromToss();
+int getMysteryEffect();
 void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO]);
 void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PLAYER_NO]);
 

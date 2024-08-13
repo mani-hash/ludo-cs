@@ -238,6 +238,12 @@ bool getDirectionFromToss()
   return clockWise;
 }
 
+int getMysteryEffect()
+{
+  int mysteryEffect = (rand() % MYSTERY_LOCATIONS) + 1;
+  return mysteryEffect;
+}
+
 void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO])
 {
   enum Color color = getPieceColor(piece->name[0]);
