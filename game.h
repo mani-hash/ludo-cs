@@ -22,11 +22,17 @@ bool canMoveToBoard(int diceNumber);
 int getEnemyCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor);
 bool isBlocked(int playerPieceCount, int enemyPieceCount);
 bool isCellEmpty(struct Piece *cells[PLAYER_NO]);
+int getMysteryLocation(int mysteryEffect, struct Piece *piece);
+bool boardHasPiece(struct Player *players);
 
 // game methods/actions
 int rollDice();
 bool getDirectionFromToss();
+int getMysteryEffect();
 void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO]);
+void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PIECE_NO]);
+void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece);
+void applyTeleportation(struct Piece *pieces[], int count, struct Piece *cells[][PLAYER_NO]);
 
 // Output functions
 void displayPlayerStatusAfterRound(struct Player *players, struct Game *game);

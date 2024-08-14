@@ -221,6 +221,42 @@ bool isCellEmpty(struct Piece *cells[PLAYER_NO])
   return true;
 }
 
+int getMysteryLocation(int mysteryEffect, struct Piece *piece)
+{
+  switch (mysteryEffect)
+  {
+    case 1:
+      return BHAWANA;
+    case 2:
+      return KOTUWA;
+    case 3:
+      return PITA_KOTUWA;
+    case 4:
+      return BASE;
+    case 5:
+      return getStartIndex(piece->name[0]);
+    case 6:
+      return getApproachIndex(piece->name[0]);
+  }
+}
+
+bool boardHasPiece(struct Player *players)
+{
+  for (int playerIndex = 0; playerIndex < PLAYER_NO; playerIndex++)
+  {
+    for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
+    {
+      int cellNo = players[playerIndex].pieces[pieceIndex].cellNo;
+      if (cellNo != HOME && cellNo != BASE)
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 /* Game methods/actions
  */
 
@@ -236,6 +272,12 @@ bool getDirectionFromToss()
   bool clockWise = rand() % 2;
 
   return clockWise;
+}
+
+int getMysteryEffect()
+{
+  int mysteryEffect = (rand() % MYSTERY_LOCATIONS) + 1;
+  return mysteryEffect;
 }
 
 void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO])
@@ -269,6 +311,110 @@ void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell
       PLAYER_NO - noOfPiecesInBase,
       noOfPiecesInBase
     );
+  }
+}
+
+void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PIECE_NO])
+{
+  //very inefficient algorithm try to fix it later
+  bool repeat = true;
+
+  do
+  {
+    int mysteryCell = (rand() % MAX_STANDARD_CELL - 1) + 1;
+
+    if (mysteryCell != game->prevMysteryCell && isCellEmpty(pieces[mysteryCell]))
+    {
+      repeat = false;
+      game->prevMysteryCell = game->mysteryCellNo;
+      game->mysteryCellNo = mysteryCell;
+    }
+  }
+  while (repeat);
+}
+
+void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece)
+{
+  switch (mysteryEffect)
+  {
+    case 1: // bhawana
+      int energy = rand() % 2;
+      piece->effect.effectActive = true;
+      piece->effect.effectActiveRounds = 4;
+
+      if (energy)
+      {
+        piece->effect.diceMultiplier = 2;  
+      }
+      else
+      {
+        piece->effect.diceDivider = 2;
+      }
+
+      break;
+    case 2: // kotuwa
+      piece->effect.effectActive = true;
+      piece->effect.pieceActive = false;
+      piece->effect.effectActiveRounds = 4;
+      break;
+    case 3: // pita kotuwa
+      if (piece->clockWise)
+      {
+        piece->clockWise = false;
+      }
+      else
+      {
+        piece->effect.effectActive = true;
+        piece->effect.pieceActive = false;
+        piece->effect.effectActiveRounds = 4; 
+      }
+      break;
+  }
+
+  piece->cellNo = mysteryLocation;
+}
+
+void applyTeleportation(struct Piece *pieces[], int count, struct Piece *cells[][PLAYER_NO])
+{
+  int mysteryEffect = getMysteryEffect();
+  int mysteryLocation = getMysteryLocation(mysteryEffect, pieces[0]);
+  enum Color color = getPieceColor(pieces[0]->name[0]);
+  int enemyCount = getEnemyCountOfCell(cells[mysteryLocation], color);
+
+  if (!isBlocked(count, enemyCount))
+  {
+    // the whole cell logic is wrong fix it 
+    bool captured = false;
+    for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
+    {
+      // turn this if condition check into a function
+      if (cells[mysteryLocation][cellIndex] != NULL && cells[mysteryLocation][cellIndex]->name[0] != pieces[0]->name[0])
+      {
+        captured = true;
+        cells[mysteryLocation][cellIndex]->cellNo = BASE;
+      }
+    }
+
+    for (int pieceIndex = 0; pieceIndex < count; pieceIndex++)
+    {
+      if (captured)
+      {
+        pieces[pieceIndex]->captured += 1;
+      }
+
+      for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
+      {
+        if (&cells[mysteryLocation][cellIndex] != NULL)
+        {
+          continue;
+        }
+        else
+        {
+          cells[mysteryLocation][cellIndex] = pieces[pieceIndex];
+          break;
+        }
+      }
+    }
   }
 }
 
@@ -313,6 +459,21 @@ void displayPlayerStatusAfterRound(struct Player *players, struct Game *game)
   }
 }
 
+void displayMysteryCellStatusAfterRound(int mysteryCellNo, int mysteryRounds)
+{
+  if (mysteryCellNo == -1)
+  {
+    printf("The required conditions for generating mystery cells have not been met");
+  }
+  else
+  {
+    printf("The mystery cell is at L%d and will be at that location for the next %d rounds",
+      mysteryCellNo,
+      mysteryRounds
+    );
+  }
+}
+
 /* Functions for game loop
  */
 
@@ -343,6 +504,33 @@ void initialGameLoop(struct Player *players, struct Game *game)
   );
 }
 
+void handleMysteryCellLoop(struct Game *game, struct Player *players, struct Piece *cells[][PIECE_NO])
+{
+  if (game->roundsTillMysteryCell <= 2)
+  {
+    if (boardHasPiece(players))
+    {
+      game->roundsTillMysteryCell += 1;
+    }
+  }
+  else
+  {
+    if (game->mysteryRounds == 0)
+    {
+      allocateMysteryCell(game, cells);
+      game->mysteryRounds = 4;
+      printf("A mystery cell has spawned in location L%d and will be at this location for the next %d rounds",
+        game->mysteryCellNo,
+        game->mysteryRounds
+      );
+    }
+    else
+    {
+      game->mysteryRounds -= 1;
+    }
+  }
+}
+
 void mainGameLoop(struct Player *players, struct Game *game, struct Piece *standardCells[][PLAYER_NO], struct Piece *homeStraight[][MAX_HOME_STRAIGHT/PLAYER_NO])
 {
   // test counter
@@ -352,6 +540,8 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
   {
     game->rounds += 1;
     printf("=============== Round %d ==============\n\n", game->rounds);
+
+    handleMysteryCellLoop(game, players, standardCells);
 
     for (int orderIndex = 0; orderIndex < PLAYER_NO; orderIndex++)
     {
@@ -376,13 +566,14 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
     }
 
     displayPlayerStatusAfterRound(players, game);
+    displayMysteryCellStatusAfterRound(game->mysteryCellNo, game->mysteryRounds);
     
     printf("\n");
     // test incremental counter
     test++;
 
     //test loop stop
-    if (test >= 1)
+    if (test >= 4)
     {
       break;
     }

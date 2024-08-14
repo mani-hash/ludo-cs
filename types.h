@@ -26,14 +26,14 @@ enum Locations {
 };
 
 enum StartLocations {
-  YELLOW_START = 0,
-  BLUE_START = 13,
-  RED_START = 26,
-  GREEN_START = 39,
+  YELLOW_START = 2,
+  BLUE_START = 15,
+  RED_START = 28,
+  GREEN_START = 41,
 };
 
 enum ApproachLocations {
-  YELLOW_APPROACH = MAX_STANDARD_CELL - APPROACH_DIFFERENCE,
+  YELLOW_APPROACH = YELLOW_START - APPROACH_DIFFERENCE,
   BLUE_APPROACH = BLUE_START - APPROACH_DIFFERENCE,
   RED_APPROACH = RED_START - APPROACH_DIFFERENCE,
   GREEN_APPROACH = GREEN_START - APPROACH_DIFFERENCE
@@ -64,9 +64,10 @@ struct Game
   int rounds;
   int mysteryCellNo;
   int mysteryRounds;
+  int roundsTillMysteryCell;
   int order[PLAYER_NO];
   int win[PLAYER_NO];
-  int prevMysteryCells[MAX_STANDARD_CELL];
+  int prevMysteryCell;
 };
 
 struct Player
