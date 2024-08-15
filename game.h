@@ -19,7 +19,9 @@ int getStartIndex(enum Color color);
 int getApproachIndex(enum Color color);
 int getNoOfPiecesInBase(struct Player *player);
 bool canMoveToBoard(int diceNumber);
+int getPlayerCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor);
 int getEnemyCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor);
+bool isPlayerCell(struct Piece *cells[PLAYER_NO], enum Color playerColor);
 bool isBlocked(int playerPieceCount, int enemyPieceCount);
 bool isCellEmpty(struct Piece *cells[PLAYER_NO]);
 int getMysteryLocation(int mysteryEffect, struct Piece *piece);
@@ -33,6 +35,25 @@ void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell
 void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PIECE_NO]);
 void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece);
 void applyTeleportation(struct Piece *pieces[], int count, struct Piece *cells[][PLAYER_NO]);
+
+// Behavior functions
+void redMoveParse(struct Player *player, int redPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
+void initialRedMovementCheck
+(
+  struct Player *player,
+  struct RedPriority *piecePriorities,
+  struct Piece *cells[][PIECE_NO],
+  int pieceIndex,
+  int diceNumber 
+);
+void validateRedMovement
+(
+  struct Player *player,
+  struct RedPriority *piecePriorities,
+  struct Piece *cells[][PIECE_NO],
+  int pieceIndex,
+  int diceNumber
+);
 
 // Output functions
 void displayPlayerStatusAfterRound(struct Player *players, struct Game *game);
