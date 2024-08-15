@@ -77,4 +77,29 @@ struct Player
   enum Color color;
 };
 
+struct RedPriority
+{
+  bool canMoveFromBase;
+  bool canFullMove;
+  bool canPartialMove;
+  bool canAttack;
+  bool canFormBlock;
+  bool canExitBlock;
+};
+
+struct GreenPriority
+{
+
+};
+
+struct YellowPriority
+{
+
+};
+
+struct BluePriority
+{
+
+};
+
 #endif // !TYPES_H
