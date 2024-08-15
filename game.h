@@ -38,7 +38,7 @@ void applyTeleportation(struct Piece *pieces[], int count, struct Piece *cells[]
 
 // Behavior functions
 void redMoveParse(struct Player *player, int redPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
-void initialRedMovementCheck
+bool initialRedMovementCheck
 (
   struct Player *player,
   struct RedPriority *piecePriorities,
