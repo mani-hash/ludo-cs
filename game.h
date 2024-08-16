@@ -26,6 +26,7 @@ bool isBlocked(int playerPieceCount, int enemyPieceCount);
 bool isCellEmpty(struct Piece *cells[PLAYER_NO]);
 int getMysteryLocation(int mysteryEffect, struct Piece *piece);
 bool boardHasPiece(struct Player *players);
+int getCorrectCellCount(int cellCount);
 
 // game methods/actions
 int rollDice();
@@ -46,13 +47,37 @@ bool initialRedMovementCheck
   int pieceIndex,
   int diceNumber 
 );
-void validateRedMovement
+void validateSingleRedMovement
 (
   struct Player *player,
   struct RedPriority *piecePriorities,
   struct Piece *cells[][PIECE_NO],
   int pieceIndex,
   int diceNumber
+);
+bool validateSingleRedTargetCell
+(
+  struct Piece *cell[PIECE_NO],
+  struct RedPriority *piecePriorities,
+  bool partialMoveCondition,
+  int pieceIndex,
+  enum Color color
+);
+void validateBlockRedMovement(
+  struct Player *player,
+  struct RedPriority *piecePriorities,
+  struct Piece *cells[][PIECE_NO],
+  int playerCount,
+  int pieceIndex,
+  int diceNumber
+);
+bool validateSingleBlockTargetCell(
+  struct Piece *cell[PIECE_NO],
+  struct RedPriority *piecePriorities,
+  bool partialMoveCondition,
+  int pieceIndex,
+  int playerCount,
+  enum Color color
 );
 
 // Output functions
