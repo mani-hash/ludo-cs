@@ -55,6 +55,7 @@ struct Piece
   char name[3];
   bool clockWise;
   bool block;
+  bool blockClockWise;
   int noOfApproachPasses;
   struct MysteryEffects effect;
 };
