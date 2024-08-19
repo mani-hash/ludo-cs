@@ -27,6 +27,18 @@ bool isCellEmpty(struct Piece *cells[PLAYER_NO]);
 int getMysteryLocation(int mysteryEffect, struct Piece *piece);
 bool boardHasPiece(struct Player *players);
 int getCorrectCellCount(int cellCount);
+int getMovableCellCount
+(
+  int cellNo,
+  int diceNumber,
+  bool clockWise,
+  int playerCount,
+  struct Piece *cells[][PIECE_NO],
+  enum Color color
+);
+int checkIfCellIsPassable(struct Piece *cell[PIECE_NO], enum Color color, int playerCount);
+enum Color getPlayerColorInCell(struct Piece *cell[PIECE_NO]);
+int getCaptureCountOfPlayer(struct Player *player);
 
 // game methods/actions
 int rollDice();

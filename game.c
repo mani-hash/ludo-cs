@@ -302,6 +302,85 @@ int getCorrectCellCount(int cellCount)
   return cellCount;
 }
 
+int getMovableCellCount
+(
+  int cellNo,
+  int diceNumber,
+  bool clockWise,
+  int playerCount,
+  struct Piece *cells[][PIECE_NO],
+  enum Color color
+)
+{
+  int movableCellCount = 0;
+
+  if (clockWise)
+  {
+    int maxCellNo = cellNo + diceNumber;
+    for (int cellIndex = cellNo + 1; cellIndex <= maxCellNo; cellIndex++)
+    {
+      int correctCellIndex = getCorrectCellCount(cellIndex);
+      
+      movableCellCount += checkIfCellIsPassable(cells[correctCellIndex], color, playerCount);
+    } 
+  }
+  else
+  {
+    int maxCellNo = cellNo - diceNumber;
+    for (int cellIndex = cellNo - 1; cellIndex >= maxCellNo; cellIndex--)
+    {
+      int correctCellIndex = getCorrectCellCount(cellIndex);
+
+      movableCellCount += checkIfCellIsPassable(cells[correctCellIndex], color, playerCount);
+    }
+  }
+
+  return movableCellCount;
+  
+}
+
+int checkIfCellIsPassable(struct Piece *cell[PIECE_NO], enum Color color, int playerCount)
+{
+  int enemyCountOfCell = getEnemyCountOfCell(cell, color);
+
+  if (isCellEmpty(cell))
+  {
+    return 1;
+  }
+  else if (!isBlocked(playerCount, enemyCountOfCell))
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
+enum Color getPlayerColorInCell(struct Piece *cell[PIECE_NO])
+{
+  enum Color color;
+
+  for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+  {
+    if (cell[cellIndex] != NULL)
+    {
+      color = getPieceColor(cell[cellIndex]->name[0]);
+    }
+  }
+
+  return color;
+}
+
+int getCaptureCountOfPlayer(struct Player *player)
+{
+  int captured = 0;
+  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
+  {
+    captured += player->pieces[pieceIndex].captured;
+  }
+
+  return captured;
+}
+
 /* Game methods/actions
  */
 
@@ -468,16 +547,126 @@ void playRound()
 
 }
 
-void move(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_NO])
+void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cells[][PIECE_NO])
 {
+  enum Color color = getPieceColor(piece->name[0]);
+  char *playerName = getName(color);
+  
+  int movableCellCount = 
+    getMovableCellCount
+    (
+      piece->cellNo,
+      diceNumber,
+      piece->clockWise,
+      1,
+      cells,
+      color
+    );
 
+  int directonConstant = piece->clockWise ? 1 : -1;
+
+  int finalCellNo = getCorrectCellCount(piece->cellNo + (diceNumber * directonConstant));
+
+  if (movableCellCount == 0)
+  {
+    printf("%s piece %s is blocked from L%d to L%d by %s piece\n",
+      playerName,
+      piece->name,
+      piece->cellNo,
+      finalCellNo,
+      getName(getPlayerColorInCell(cells[finalCellNo]))
+    );
+
+    printf("%s does not have other pieces to move instead of blocked piece. ", playerName);
+    printf("Ignoring the throw and moving to the next player\n");
+
+    return;
+  }
+
+  if (movableCellCount < diceNumber)
+  {
+    finalCellNo = getCorrectCellCount(piece->cellNo + movableCellCount);
+
+    printf("%s does not have other pieces to move instead of blocked piece. Moved the piece %s to square L%d which is a cell before the block\n",
+      playerName,
+      piece->name,
+      finalCellNo
+    );
+  }
+  else
+  {
+    printf("%s moves piece %s from location L%d to L%d by %d units in %s direction",
+      playerName,
+      piece->name,
+      piece->cellNo,
+      finalCellNo,
+      movableCellCount,
+      piece->clockWise ? "clock-wise" : "counter clock-wise"
+    );
+  }
+
+
+  cells[piece->cellNo][pieceIndex] = NULL;
+  piece->cellNo = finalCellNo;
+    
+  if (!isCellEmpty(cells[finalCellNo]))
+  {
+    if (getEnemyCountOfCell(cells[finalCellNo], color) != 0)
+    {
+      piece->captured+=1;
+      for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+      {
+        if (cells[finalCellNo][cellIndex] != NULL)
+        {
+          enum Color enemyColor = getPieceColor(cells[finalCellNo][cellIndex]->name[0]);
+          char *enemyName = getName(enemyColor);
+
+          printf("%s piece %s lands on square L%d, captures %s piece %s, and returns it to the base",
+            playerName,
+            piece->name,
+            finalCellNo,
+            enemyName,
+            cells[finalCellNo][cellIndex]->name
+          );
+          
+          cells[finalCellNo][cellIndex]->cellNo = BASE;
+          // add reset piece functionality later
+          cells[finalCellNo][cellIndex] = NULL;
+
+          // fix later
+          // printf("%s player now has %d/4 pieces on the board and %d/4 pieces on the base\n",
+          //   enemyName,
+          //   getNoOfPiecesInBase()
+          // );
+          break;
+        }
+      }
+    }
+    else
+    {
+      // form block logic here
+      // printf("%s piece %s has formed a block");
+    }
+  }
+
+  // place piece in 2d array
+  for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+  {
+    if (cells[finalCellNo][cellIndex] == NULL)
+    {
+      cells[finalCellNo][cellIndex] = piece;
+      break;
+    }
+  }
 }
 
 /* Behavior functions
  */
 
-void redMoveParse(struct Player *player, int redPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO])
+void redMoveParse(struct Player *players, int redPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO])
 {
+  struct Player *player = &players[redPlayerIndex];
+
   struct RedPriority piecePriorities[PIECE_NO] = 
   {
     [0 ... PIECE_NO - 1] = { false, false, false, false, false, false }
@@ -530,6 +719,10 @@ void redMoveParse(struct Player *player, int redPlayerIndex, int diceNumber, str
       {
         pieceImportance[pieceIndex] -= 1;
       }
+      else
+      {
+        continue;
+      }
 
       if (!piecePriorities[pieceIndex].canFullMove)
       {
@@ -579,6 +772,15 @@ void redMoveParse(struct Player *player, int redPlayerIndex, int diceNumber, str
 
   }
 
+  if (player->pieces[selectedPiece].cellNo == BASE && diceNumber == MAX_DICE_VALUE)
+  {
+    moveFromBase(player, &player->pieces[selectedPiece], cells[getStartIndex(player->color)]);
+  }
+  else if (player->pieces[selectedPiece].cellNo != BASE && player->pieces[selectedPiece].cellNo != HOME)
+  {
+    move(&player->pieces[selectedPiece], selectedPiece, diceNumber, cells);
+  }
+
 
 }
 
@@ -609,7 +811,7 @@ bool initialRedMovementCheck
     return false;
   }
 
-  if (cellNo == BASE && !isBlocked(1, getStartIndex(player->color)) && canMoveToBoard(diceNumber))
+  if (cellNo == BASE && !isBlocked(1, getEnemyCountOfCell(cells[getStartIndex(player->color)], player->color)) && canMoveToBoard(diceNumber))
   {
     piecePriorities[pieceIndex].canMoveFromBase = true;
     if (getEnemyCountOfCell(cells[getStartIndex(player->color)], player->color) != 0)
@@ -1001,18 +1203,55 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
       printf("%s player rolled %d\n\n", getName(players[playerIndex].color), diceNumber);
 
       // game loop if all pieces are still in base
-      if (noOfPiecesInBase == PLAYER_NO && canMoveToBoard(diceNumber))
-      {
-        moveFromBase(&players[playerIndex], &players[playerIndex].pieces[0], standardCells[players[playerIndex].startIndex]);
-        // implement re throw functionalities (later)
+      // if (noOfPiecesInBase == PLAYER_NO && canMoveToBoard(diceNumber))
+      // {
+      //   moveFromBase(&players[playerIndex], &players[playerIndex].pieces[0], standardCells[players[playerIndex].startIndex]);
+      //   // implement re throw functionalities (later)
 
-        // while (canMoveToBoard(diceNumber))
-        // {
-        //  diceNumber = rollDice();
-        // }
-        // printf("%s is moving %s\n", getName(players[playerIndex].color), players[playerIndex].pieces[0].clockWise ? "clockwise" : "anti-clockwise");
-      }
-    }
+      //   // while (canMoveToBoard(diceNumber))
+      //   // {
+      //   //  diceNumber = rollDice();
+      //   // }
+      //   // printf("%s is moving %s\n", getName(players[playerIndex].color), players[playerIndex].pieces[0].clockWise ? "clockwise" : "anti-clockwise");
+      // }
+      // else
+      // {
+      //   switch (players[playerIndex].color)
+      //   {
+      //     case RED:
+      //       redMoveParse(players, playerIndex, diceNumber, standardCells);
+      //       break;
+      //   }
+      // }
+
+      int minConsecutive = 0;
+      int captureCount = getCaptureCountOfPlayer(&players[playerIndex]);
+
+      do
+      {
+        switch (players[playerIndex].color)
+        {
+          case RED:
+            redMoveParse(players, playerIndex, diceNumber, standardCells);
+            break;
+        }
+
+        minConsecutive++;
+
+        int newCaptureCount = getCaptureCountOfPlayer(&players[playerIndex]);
+
+        if (diceNumber != MAX_DICE_VALUE && newCaptureCount <= captureCount)
+        {
+          break;
+        }
+        else
+        {
+          diceNumber = rollDice();
+          printf("%s player rolled %d\n\n", getName(players[playerIndex].color), diceNumber);
+        }
+
+      } while (minConsecutive < 3);
+    } 
 
     displayPlayerStatusAfterRound(players, game);
     displayMysteryCellStatusAfterRound(game->mysteryCellNo, game->mysteryRounds);
@@ -1022,7 +1261,7 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
     test++;
 
     //test loop stop
-    if (test >= 1)
+    if (test >= 150)
     {
       break;
     }
