@@ -413,6 +413,22 @@ int getDistanceFromHome(struct Piece *piece)
   return distanceFromHome;
 }
 
+int getEnemyDistanceFromHome(struct Piece *cell[PIECE_NO])
+{
+  int enemyDistanceFromHome = 0;
+
+  for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+  {
+    if (cell[cellIndex] != NULL)
+    {
+      enemyDistanceFromHome = getDistanceFromHome(cell[cellIndex]);
+      break;
+    }
+  }
+
+  return enemyDistanceFromHome;
+}
+
 /* Game methods/actions
  */
 
@@ -795,7 +811,7 @@ void redMoveParse(struct Player *players, int redPlayerIndex, int diceNumber, st
   }
   int selectedPiece = -1;
   int maxPriority = -1;
-  int distanceFromHome = MAX_STANDARD_CELL;
+  int prevEnemyDistanceFromHome = MAX_STANDARD_CELL;
   for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
   {
     if (pieceImportance[pieceIndex] > maxPriority)
@@ -804,10 +820,19 @@ void redMoveParse(struct Player *players, int redPlayerIndex, int diceNumber, st
       selectedPiece = pieceIndex;
 
     }
-    // if (pieceImportance[pieceIndex] == 5 && canAttackCount != 0 && getDistanceFromHome(&player->pieces[pieceIndex]))
-    // {
-      
-    // }
+
+    // Selects the opponent player close to their home if there are multiple
+    // attack options
+    if (pieceImportance[pieceIndex] == 5 && canAttackCount != 0)
+    {
+      int destinationIndex = player->pieces[pieceIndex].cellNo + diceNumber;
+      int enemyDistanceFromHome = getEnemyDistanceFromHome(cells[destinationIndex]);
+
+      if (enemyDistanceFromHome < prevEnemyDistanceFromHome)
+      {
+        selectedPiece = pieceIndex;
+      }
+    }
 
   }
 
@@ -934,75 +959,28 @@ void validateSingleRedMovement
     int playerCount = getPlayerCountOfCell(cells[cellNo], player->color);
   }
 
-  if (player->pieces[pieceIndex].clockWise)
+  int movableCellCount = 
+    getMovableCellCount
+    (
+      cellNo,
+      diceNumber, 
+      player->pieces[pieceIndex].clockWise,
+      playerCount,
+      cells,
+      player->color
+    );
+
+  if (movableCellCount < diceNumber)
   {
-    int maxCellNo = cellNo + diceNumber;
-    for (int cellIndex = cellNo + 1; cellIndex <= maxCellNo; cellIndex++)
+    piecePriorities[pieceIndex].canAttack = false;
+    piecePriorities[pieceIndex].canFullMove = false;
+
+    if (movableCellCount != 0)
     {
-      int correctCellNo = getCorrectCellCount(maxCellNo);
-      bool partialMoveCondition = cellIndex != cellNo + 1;
-      if (!validateSingleRedTargetCell
-      (
-        cells[correctCellNo], 
-        piecePriorities, 
-        partialMoveCondition, 
-        pieceIndex, 
-        player->color
-      ))
-      {
-        break;
-      }
+      piecePriorities[pieceIndex].canPartialMove = true;
+
     }
   }
-  else
-  {
-    int maxCellNo = cellNo - diceNumber;
-    for (int cellIndex = cellNo - 1; cellIndex >= maxCellNo; cellIndex--)
-    {
-      int correctCellNo = (maxCellNo < 0) ? MAX_STANDARD_CELL + maxCellNo : maxCellNo;
-      bool partialMoveCondition = cellIndex != cellNo - 1;
-
-      if (!validateSingleRedTargetCell(
-        cells[correctCellNo],
-        piecePriorities,
-        partialMoveCondition,
-        pieceIndex,
-        player->color
-      ))
-      {
-        break;
-      }
-    }
-  }
-}
-
-bool validateSingleRedTargetCell
-(
-  struct Piece *cell[PIECE_NO],
-  struct RedPriority *piecePriorities,
-  bool partialMoveCondition,
-  int pieceIndex,
-  enum Color color
-)
-{
-  if (!isCellEmpty(cell))
-  {
-    int enemyCountOfCell = getEnemyCountOfCell(cell, color);
-    if (isBlocked(1, enemyCountOfCell))
-    {
-      piecePriorities[pieceIndex].canAttack = false;
-      piecePriorities[pieceIndex].canFullMove = false;
-
-      if (partialMoveCondition)
-      {
-        piecePriorities[pieceIndex].canPartialMove = true;
-      }
-
-      return false;
-    }
-  }
-
-  return true;
 }
 
 void validateBlockRedMovement(
@@ -1015,77 +993,28 @@ void validateBlockRedMovement(
 )
 {
   int cellNo = player->pieces[pieceIndex].cellNo;
-  if (player->pieces[pieceIndex].blockClockWise)
+  diceNumber /= playerCount;
+
+  int movableCellCount =
+    getMovableCellCount(
+      cellNo,
+      diceNumber,
+      player->pieces[pieceIndex].clockWise,
+      playerCount,
+      cells,
+      player->color
+    );
+
+  if (movableCellCount < diceNumber)
   {
-    int maxBlockCellNo = cellNo + (diceNumber/playerCount);
-    for (int cellIndex = cellNo + 1; cellIndex <= maxBlockCellNo; cellIndex++)
-    {
-      int correctBlockCellNo = getCorrectCellCount(cellIndex);
-      bool partialMoveCondition = cellIndex != cellNo + 1;
-
-      if (!validateSingleBlockTargetCell(
-        cells[correctBlockCellNo],
-        piecePriorities, 
-        partialMoveCondition, 
-        pieceIndex,
-        playerCount,
-        player->color
-      ))
-      {
-        break;
-      }
-    }
-  }
-  else
-  {
-    int maxBlockCellNo = cellNo - (diceNumber/playerCount);
-    for (int cellIndex = cellNo - 1; cellIndex >= maxBlockCellNo; cellIndex--)
-    {
-      int correctBlockCellNo = getCorrectCellCount(cellIndex);
-      bool partialMoveCondition = cellIndex != cellNo - 1;
-
-      if (!validateSingleBlockTargetCell(
-        cells[correctBlockCellNo],
-        piecePriorities, 
-        partialMoveCondition, 
-        pieceIndex,
-        playerCount,
-        player->color
-      ))
-      {
-        break;
-      }
-      
-    }
-  }
-}
-
-bool validateSingleBlockTargetCell(
-  struct Piece *cell[PIECE_NO],
-  struct RedPriority *piecePriorities,
-  bool partialMoveCondition,
-  int pieceIndex,
-  int playerCount,
-  enum Color color
-)
-{
-  int enemyCountOfCell = getEnemyCountOfCell(cell, color);
-
-  if (isBlocked(playerCount, enemyCountOfCell))
-  {
-    // do this tmrw (also compare differences between isBlocked and is captured)
     piecePriorities[pieceIndex].canFullMove = false;
     piecePriorities[pieceIndex].canAttack = false;
 
-    if (partialMoveCondition)
+    if (movableCellCount != 0)
     {
       piecePriorities[pieceIndex].canPartialMove = true;
     }
-
-    return false;
   }
-
-  return true;
 }
 
 void finalizeRedMovement()
@@ -1332,7 +1261,7 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
     test++;
 
     //test loop stop
-    if (test >= 1)
+    if (test >= 10)
     {
       break;
     }

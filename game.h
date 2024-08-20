@@ -40,6 +40,7 @@ int checkIfCellIsPassable(struct Piece *cell[PIECE_NO], enum Color color, int pl
 enum Color getPlayerColorInCell(struct Piece *cell[PIECE_NO]);
 int getCaptureCountOfPlayer(struct Player *player);
 int getDistanceFromHome(struct Piece *piece);
+int getEnemyDistanceFromHome(struct Piece *cell[PIECE_NO]);
 
 // game methods/actions
 int rollDice();
@@ -71,14 +72,6 @@ void validateSingleRedMovement
   int pieceIndex,
   int diceNumber
 );
-bool validateSingleRedTargetCell
-(
-  struct Piece *cell[PIECE_NO],
-  struct RedPriority *piecePriorities,
-  bool partialMoveCondition,
-  int pieceIndex,
-  enum Color color
-);
 void validateBlockRedMovement(
   struct Player *player,
   struct RedPriority *piecePriorities,
@@ -86,14 +79,6 @@ void validateBlockRedMovement(
   int playerCount,
   int pieceIndex,
   int diceNumber
-);
-bool validateSingleBlockTargetCell(
-  struct Piece *cell[PIECE_NO],
-  struct RedPriority *piecePriorities,
-  bool partialMoveCondition,
-  int pieceIndex,
-  int playerCount,
-  enum Color color
 );
 
 // Output functions
