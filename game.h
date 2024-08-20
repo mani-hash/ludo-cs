@@ -39,15 +39,19 @@ int getMovableCellCount
 int checkIfCellIsPassable(struct Piece *cell[PIECE_NO], enum Color color, int playerCount);
 enum Color getPlayerColorInCell(struct Piece *cell[PIECE_NO]);
 int getCaptureCountOfPlayer(struct Player *player);
+int getDistanceFromHome(struct Piece *piece);
 
 // game methods/actions
 int rollDice();
 bool getDirectionFromToss();
 int getMysteryEffect();
+void formBlock(struct Piece *cell[PIECE_NO]);
+void destroyBlock(struct Piece *cell[PIECE_NO]);
 void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO]);
 void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PIECE_NO]);
 void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece);
 void applyTeleportation(struct Piece *pieces[], int count, struct Piece *cells[][PLAYER_NO]);
+void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
 
 // Behavior functions
 void redMoveParse(struct Player *player, int redPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
@@ -94,7 +98,16 @@ bool validateSingleBlockTargetCell(
 
 // Output functions
 void displayPlayerStatusAfterRound(struct Player *players, struct Game *game);
-
+void displayMysteryCellStatusAfterRound(int mysteryCellNo, int mysteryRounds);
+void displayMovablePieceStatus
+(
+  int movableCellCount,
+  int diceNumber,
+  char *playerName,
+  struct Piece *piece,
+  int *finalCellNo,
+  struct Piece *cell[PIECE_NO]
+);
 
 // game loops
 void initialGameLoop(struct Player *players, struct Game *game);
