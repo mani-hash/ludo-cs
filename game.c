@@ -736,6 +736,10 @@ void redMoveParse(struct Player *players, int redPlayerIndex, int diceNumber, st
     [0 ... PIECE_NO - 1] = { false, false, false, false, false, false }
   };
 
+  // variables to track piece importance
+  int pieceImportance[] = { 5, 5, 5, 5 };
+  int canAttackCount = 0;
+
   for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
   {
 
@@ -767,74 +771,10 @@ void redMoveParse(struct Player *players, int redPlayerIndex, int diceNumber, st
       validateBlockRedMovement(player, piecePriorities, cells, playerCount, pieceIndex, diceNumber);
     }
 
+    validateRedPieceImportance(piecePriorities, pieceImportance, pieceIndex, &canAttackCount, player->pieces[pieceIndex].block);
   }
 
-  int pieceImportance[] = { 5, 5, 5, 5 };
-  int canAttackCount = 0;
-
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    if (!piecePriorities[pieceIndex].canAttack)
-    {
-      // if can't capture
-      pieceImportance[pieceIndex] -= 1;
-
-      if (!piecePriorities[pieceIndex].canMoveFromBase)
-      {
-        pieceImportance[pieceIndex] -= 1;
-      }
-      else
-      {
-        continue;
-      }
-
-      if (!piecePriorities[pieceIndex].canFullMove)
-      {
-        pieceImportance[pieceIndex] -= 1;
-      }
-      
-      if (!piecePriorities[pieceIndex].canPartialMove)
-      {
-        pieceImportance[pieceIndex] -= 1;
-      }
-
-      if (player->pieces[pieceIndex].block && !piecePriorities[pieceIndex].canExitBlock)
-      {
-        pieceImportance[pieceIndex] -= 1;
-      }
-    }
-
-    if (pieceImportance[pieceIndex] == 5)
-    {
-      canAttackCount++;
-    }
-  }
-  int selectedPiece = -1;
-  int maxPriority = -1;
-  int prevEnemyDistanceFromHome = MAX_STANDARD_CELL;
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    if (pieceImportance[pieceIndex] > maxPriority)
-    {
-      maxPriority = pieceImportance[pieceIndex];
-      selectedPiece = pieceIndex;
-
-    }
-
-    // Selects the opponent player close to their home if there are multiple
-    // attack options
-    if (pieceImportance[pieceIndex] == 5 && canAttackCount != 0)
-    {
-      int destinationIndex = player->pieces[pieceIndex].cellNo + diceNumber;
-      int enemyDistanceFromHome = getEnemyDistanceFromHome(cells[destinationIndex]);
-
-      if (enemyDistanceFromHome < prevEnemyDistanceFromHome)
-      {
-        selectedPiece = pieceIndex;
-      }
-    }
-
-  }
+  int selectedPiece = getIndexOfSelectedRedPiece(player->pieces, cells, pieceImportance, canAttackCount, diceNumber);
 
   if (player->pieces[selectedPiece].cellNo == BASE && diceNumber == MAX_DICE_VALUE)
   {
@@ -1015,6 +955,88 @@ void validateBlockRedMovement(
       piecePriorities[pieceIndex].canPartialMove = true;
     }
   }
+}
+
+void validateRedPieceImportance(
+  struct RedPriority *piecePriorities,
+  int *pieceImportance,
+  int pieceIndex,
+  int *canAttackCount,
+  bool blockade
+)
+{
+  if (!piecePriorities[pieceIndex].canAttack)
+  {
+    // if can't capture
+    pieceImportance[pieceIndex] -= 1;
+
+    if (!piecePriorities[pieceIndex].canMoveFromBase)
+    {
+      pieceImportance[pieceIndex] -= 1;
+    }
+    else
+    {
+      return;
+    }
+
+    if (!piecePriorities[pieceIndex].canFullMove)
+    {
+      pieceImportance[pieceIndex] -= 1;
+    }
+      
+    if (!piecePriorities[pieceIndex].canPartialMove)
+    {
+      pieceImportance[pieceIndex] -= 1;
+    }
+
+    if (blockade && !piecePriorities[pieceIndex].canExitBlock)
+    {
+      pieceImportance[pieceIndex] -= 1;
+    }
+  }
+
+  if (pieceImportance[pieceIndex] == 5)
+  {
+    *canAttackCount++;
+  }
+}
+
+int getIndexOfSelectedRedPiece
+(
+  struct Piece *pieces,
+  struct Piece *cells[][PIECE_NO],
+  int *pieceImportance,
+  int canAttackCount,
+  int diceNumber
+)
+{
+  int selectedPiece = -1;
+  int maxPriority = -1;
+  int prevEnemyDistanceFromHome = MAX_STANDARD_CELL;
+
+  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
+  {
+    if (pieceImportance[pieceIndex] > maxPriority)
+    {
+      maxPriority = pieceImportance[pieceIndex];
+      selectedPiece = pieceIndex;
+    }
+
+    // Selects the opponent player close to their home if there are multiple
+    // attack options
+    if (pieceImportance[pieceIndex] == 5 && canAttackCount != 0)
+    {
+      int destinationIndex = pieces[pieceIndex].cellNo + diceNumber;
+      int enemyDistanceFromHome = getEnemyDistanceFromHome(cells[destinationIndex]);
+
+      if (enemyDistanceFromHome < prevEnemyDistanceFromHome)
+      {
+        selectedPiece = pieceIndex;
+      }
+    }
+  }
+
+  return selectedPiece;
 }
 
 void finalizeRedMovement()

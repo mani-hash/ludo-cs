@@ -80,6 +80,21 @@ void validateBlockRedMovement(
   int pieceIndex,
   int diceNumber
 );
+void validateRedPieceImportance(
+  struct RedPriority *piecePriorities,
+  int *pieceImportance,
+  int pieceIndex,
+  int *canAttackCount,
+  bool blockade
+);
+int getIndexOfSelectedRedPiece
+(
+  struct Piece *pieces,
+  struct Piece *cells[][PIECE_NO],
+  int *pieceImportance,
+  int canAttackCount,
+  int diceNumber
+);
 
 // Output functions
 void displayPlayerStatusAfterRound(struct Player *players, struct Game *game);
