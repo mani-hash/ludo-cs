@@ -109,6 +109,14 @@ void displayMovablePieceStatus
   int *finalCellNo,
   struct Piece *cell[PIECE_NO]
 );
+void displayMovableBlockStatus(
+  int movableCellCount,
+  int diceNumber,
+  char *playerName,
+  struct Piece *piece,
+  int *finalCellNo,
+  struct Piece *cell[PIECE_NO]
+);
 
 // game loops
 void initialGameLoop(struct Player *players, struct Game *game);

@@ -640,6 +640,11 @@ void playRound()
 
 }
 
+void captureByPiece()
+{
+
+}
+
 void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cells[][PIECE_NO])
 {
   enum Color color = getPieceColor(piece->name[0]);
@@ -748,46 +753,7 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
   int directonConstant = piece->blockClockWise ? 1 : -1;
   int finalCellNo = getCorrectCellCount(piece->cellNo + (diceNumber * directonConstant));
 
-  if (movableCellCount == 0)
-  {
-    printf("Block of %s has been blocked by %s block from moving from L%d to L%d",
-      playerName,
-      getName(getPlayerColorInCell(cells[finalCellNo])),
-      piece->cellNo,
-      finalCellNo
-    );
-    return;
-  }
-  else if (movableCellCount < diceNumber)
-  {
-    finalCellNo = getCorrectCellCount(piece->cellNo + (movableCellCount * directonConstant));
-
-    printf("%s does not have other pieces to move instead of blocked piece. Moved the block pieces to square L%d which is a cell before the block\n",
-      playerName,
-      finalCellNo
-    );
-  }
-  else
-  {
-    printf("Block of %s moves from location L%d to L%d by %d units in %s direction",
-      playerName,
-      piece->cellNo,
-      finalCellNo,
-      movableCellCount,
-      piece->blockClockWise ? "clock-wise" : "counter clock-wise"
-    );
-  }
-
-  for (int prevIndex = 0, blockIndex = 0; prevIndex < PIECE_NO; prevIndex++)
-  {
-    if (cells[piece->cellNo][prevIndex] != NULL)
-    {
-      blockPieces[blockIndex] = cells[piece->cellNo][prevIndex];
-      blockPieces[blockIndex]->cellNo = finalCellNo;
-      blockIndex++;
-      cells[piece->cellNo][prevIndex] = NULL;
-    }
-  }
+  displayMovableBlockStatus(movableCellCount, diceNumber, playerName, piece, &finalCellNo, cells[finalCellNo]);
 
   // fix logic
   if (!isCellEmpty(cells[finalCellNo]))
@@ -1286,6 +1252,50 @@ void displayMovablePieceStatus
       *finalCellNo,
       movableCellCount,
       piece->clockWise ? "clock-wise" : "counter clock-wise"
+    );
+  }
+}
+
+void displayMovableBlockStatus(
+  int movableCellCount,
+  int diceNumber,
+  char *playerName,
+  struct Piece *piece,
+  int *finalCellNo,
+  struct Piece *cell[PIECE_NO]
+)
+{
+  if (movableCellCount == 0)
+  {
+    printf("Block of %s has been blocked by %s block from moving from L%d to L%d",
+      playerName,
+      getName(getPlayerColorInCell(cell)),
+      piece->cellNo,
+      *finalCellNo
+    );
+    printf("%s does not have other pieces to move instead of blocked piece. ", playerName);
+    printf("Ignoring the throw and moving to the next player\n");
+
+    return;
+  }
+  else if (movableCellCount < diceNumber)
+  {
+    int directionConstant = piece->blockClockWise ? 1: -1;
+    *finalCellNo = getCorrectCellCount(piece->cellNo + (movableCellCount * directionConstant));
+
+    printf("%s does not have other pieces to move instead of blocked piece. Moved the block pieces to square L%d which is a cell before the block\n",
+      playerName,
+      *finalCellNo
+    );
+  }
+  else
+  {
+    printf("Block of %s moves from location L%d to L%d by %d units in %s direction",
+      playerName,
+      piece->cellNo,
+      *finalCellNo,
+      movableCellCount,
+      piece->blockClockWise ? "clock-wise" : "counter clock-wise"
     );
   }
 }
