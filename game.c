@@ -640,9 +640,70 @@ void playRound()
 
 }
 
-void captureByPiece()
+void captureByPiece(struct Piece *piece, struct Piece *cells[][PIECE_NO], int finalCellNo, char *playerName)
 {
+  piece->captured+=1;
+  for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+  {
+    if (cells[finalCellNo][cellIndex] != NULL)
+    {
+      enum Color enemyColor = getPieceColor(cells[finalCellNo][cellIndex]->name[0]);
+      char *enemyName = getName(enemyColor);
 
+      printf("%s piece %s lands on square L%d, captures %s piece %s, and returns it to the base",
+        playerName,
+        piece->name,
+        finalCellNo,
+        enemyName,
+        cells[finalCellNo][cellIndex]->name
+      );
+          
+      cells[finalCellNo][cellIndex]->cellNo = BASE;
+      // add reset piece functionality later
+      cells[finalCellNo][cellIndex] = NULL;
+
+      // fix later
+      // printf("%s player now has %d/4 pieces on the board and %d/4 pieces on the base\n",
+      //   enemyName,
+      //   getNoOfPiecesInBase()
+      // );
+      break;
+    }
+  } 
+}
+
+void captureByBlock
+(
+  struct Piece **blockPieces,
+  int playerCount,
+  struct Piece *cells[][PIECE_NO],
+  int finalCellNo,
+  char *playerName
+)
+{
+  for (int cellIndex = 0, blockIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+  {
+    if (cells[finalCellNo][cellIndex] != NULL)
+    {
+      enum Color enemyColor = getPieceColor(cells[finalCellNo][cellIndex]->name[0]);
+      char *enemyName = getName(enemyColor);
+
+      printf("%s piece %s is captured by block of %s and is returned to the base\n",
+        enemyName,
+        cells[finalCellNo][cellIndex]->name,
+        playerName
+      );
+          
+      cells[finalCellNo][cellIndex]->cellNo = BASE;
+      // add reset piece functionality later
+      cells[finalCellNo][cellIndex] = NULL;
+    }
+  }
+
+  for (int blockIndex = 0; blockIndex < playerCount; blockIndex++)
+  {
+    blockPieces[blockIndex]->captured++;
+  }
 }
 
 void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cells[][PIECE_NO])
@@ -675,34 +736,7 @@ void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cel
   {
     if (getEnemyCountOfCell(cells[finalCellNo], color) != 0)
     {
-      piece->captured+=1;
-      for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
-      {
-        if (cells[finalCellNo][cellIndex] != NULL)
-        {
-          enum Color enemyColor = getPieceColor(cells[finalCellNo][cellIndex]->name[0]);
-          char *enemyName = getName(enemyColor);
-
-          printf("%s piece %s lands on square L%d, captures %s piece %s, and returns it to the base",
-            playerName,
-            piece->name,
-            finalCellNo,
-            enemyName,
-            cells[finalCellNo][cellIndex]->name
-          );
-          
-          cells[finalCellNo][cellIndex]->cellNo = BASE;
-          // add reset piece functionality later
-          cells[finalCellNo][cellIndex] = NULL;
-
-          // fix later
-          // printf("%s player now has %d/4 pieces on the board and %d/4 pieces on the base\n",
-          //   enemyName,
-          //   getNoOfPiecesInBase()
-          // );
-          break;
-        }
-      }
+      captureByPiece(piece, cells, finalCellNo, playerName);
     }
     else
     {
@@ -749,36 +783,16 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
     );
 
   bool formBlockStatus = false;
-  bool blockHasCaptured = false;
   int directonConstant = piece->blockClockWise ? 1 : -1;
   int finalCellNo = getCorrectCellCount(piece->cellNo + (diceNumber * directonConstant));
 
   displayMovableBlockStatus(movableCellCount, diceNumber, playerName, piece, &finalCellNo, cells[finalCellNo]);
 
-  // fix logic
   if (!isCellEmpty(cells[finalCellNo]))
   {
     if (getEnemyCountOfCell(cells[finalCellNo], color) != 0)
     {
-      blockHasCaptured = true;
-      for (int cellIndex = 0, blockIndex = 0; cellIndex < PIECE_NO; cellIndex++)
-      {
-        if (cells[finalCellNo][cellIndex] != NULL)
-        {
-          enum Color enemyColor = getPieceColor(cells[finalCellNo][cellIndex]->name[0]);
-          char *enemyName = getName(enemyColor);
-
-          printf("%s piece %s is captured by block of %s and is returned to the base\n",
-            enemyName,
-            cells[finalCellNo][cellIndex]->name,
-            playerName
-          );
-          
-          cells[finalCellNo][cellIndex]->cellNo = BASE;
-          // add reset piece functionality later
-          cells[finalCellNo][cellIndex] = NULL;
-        }
-      }
+      captureByBlock(blockPieces, playerCount, cells, finalCellNo, playerName);
     }
     else
     {
@@ -792,11 +806,6 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
     {
       cells[finalCellNo][blockIndex] = blockPieces[blockIndex];
 
-      // increment capture count of individual pieces in block
-      if (blockHasCaptured)
-      {
-        blockPieces[blockIndex]->captured++;
-      }
       blockIndex++;
     }
   }
@@ -808,7 +817,6 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
       playerName
     );
   }
-  
 }
 
 /* Behavior functions
