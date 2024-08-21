@@ -53,6 +53,7 @@ void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PIECE_NO]);
 void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece);
 void applyTeleportation(struct Piece *pieces[], int count, struct Piece *cells[][PLAYER_NO]);
 void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
+void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_NO]);
 
 // Behavior functions
 void redMoveParse(struct Player *player, int redPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
