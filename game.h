@@ -52,6 +52,7 @@ void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell
 void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PIECE_NO]);
 void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece);
 void applyTeleportation(struct Piece *pieces[], int count, struct Piece *cells[][PLAYER_NO]);
+int getDiceValueAfterMysteryEffect(int diceNumber, struct Player *player, int pieceIndex);
 void captureByPiece(struct Piece *piece, struct Piece *cells[][PIECE_NO], int finalCellNo, char *playerName);
 void captureByBlock
 (

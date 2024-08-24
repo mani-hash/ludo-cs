@@ -635,6 +635,23 @@ void applyTeleportation(struct Piece *pieces[], int count, struct Piece *cells[]
   }
 }
 
+int getDiceValueAfterMysteryEffect(int diceNumber, struct Player *player, int pieceIndex)
+{
+  if (player->pieces[pieceIndex].effect.effectActive)
+  {
+    struct MysteryEffects *effect = &player->pieces[pieceIndex].effect;
+    if (!effect->pieceActive)
+    {
+      diceNumber = 0;
+    }
+
+    diceNumber *= effect->diceMultiplier;
+    diceNumber /= effect->diceDivider;
+  }
+
+  return diceNumber;
+}
+
 void playRound()
 {
 
@@ -839,17 +856,7 @@ void redMoveParse(struct Player *players, int redPlayerIndex, int diceNumber, st
   {
 
     // check mystery effects
-    if (player->pieces[pieceIndex].effect.effectActive)
-    {
-      struct MysteryEffects *effect = &player->pieces[pieceIndex].effect;
-      if (!effect->pieceActive)
-      {
-        diceNumber = 0;
-      }
-
-      diceNumber *= effect->diceMultiplier;
-      diceNumber /= effect->diceDivider;
-    }
+    diceNumber = getDiceValueAfterMysteryEffect(diceNumber, player, pieceIndex);
 
     if (!initialRedMovementCheck(player, piecePriorities, cells, pieceIndex, diceNumber))
     {
