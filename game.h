@@ -105,6 +105,14 @@ int getIndexOfSelectedRedPiece
   int canAttackCount,
   int diceNumber
 );
+void finalizeRedMovement
+(
+  struct Player *player,
+  int selectedPiece, 
+  int diceNumber, 
+  struct Piece *cells[][PIECE_NO], 
+  bool canExitBlock
+);
 
 // Output functions
 void displayPlayerStatusAfterRound(struct Player *players, struct Game *game);

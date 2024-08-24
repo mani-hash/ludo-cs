@@ -871,21 +871,7 @@ void redMoveParse(struct Player *players, int redPlayerIndex, int diceNumber, st
 
   int selectedPiece = getIndexOfSelectedRedPiece(player->pieces, cells, pieceImportance, canAttackCount, diceNumber);
 
-  if (player->pieces[selectedPiece].cellNo == BASE && diceNumber == MAX_DICE_VALUE)
-  {
-    moveFromBase(player, &player->pieces[selectedPiece], cells[getStartIndex(player->color)]);
-  }
-  else if (player->pieces[selectedPiece].cellNo != BASE && player->pieces[selectedPiece].cellNo != HOME)
-  {
-    if (player->pieces[selectedPiece].block && !piecePriorities[selectedPiece].canExitBlock)
-    {
-      moveBlock(&player->pieces[selectedPiece], diceNumber, cells);
-    }
-    else
-    {
-      move(&player->pieces[selectedPiece], selectedPiece, diceNumber, cells);
-    }
-  }
+  finalizeRedMovement(player, selectedPiece, diceNumber, cells, piecePriorities[selectedPiece].canExitBlock);
 }
 
 bool initialRedMovementCheck
@@ -1139,9 +1125,30 @@ int getIndexOfSelectedRedPiece
   return selectedPiece;
 }
 
-void finalizeRedMovement()
+void finalizeRedMovement
+(
+  struct Player *player,
+  int selectedPiece, 
+  int diceNumber, 
+  struct Piece *cells[][PIECE_NO], 
+  bool canExitBlock
+)
 {
-
+  if (player->pieces[selectedPiece].cellNo == BASE && diceNumber == MAX_DICE_VALUE)
+  {
+    moveFromBase(player, &player->pieces[selectedPiece], cells[getStartIndex(player->color)]);
+  }
+  else if (player->pieces[selectedPiece].cellNo != BASE && player->pieces[selectedPiece].cellNo != HOME)
+  {
+    if (player->pieces[selectedPiece].block && !canExitBlock)
+    {
+      moveBlock(&player->pieces[selectedPiece], diceNumber, cells);
+    }
+    else
+    {
+      move(&player->pieces[selectedPiece], selectedPiece, diceNumber, cells);
+    }
+  }
 }
 
 void greenMoveParse()
