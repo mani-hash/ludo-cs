@@ -24,7 +24,9 @@ int getEnemyCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor);
 bool isPlayerCell(struct Piece *cells[PLAYER_NO], enum Color playerColor);
 bool isBlocked(int playerPieceCount, int enemyPieceCount);
 bool isCellEmpty(struct Piece *cells[PLAYER_NO]);
+int getMysteryEffectNumber(int location);
 int getMysteryLocation(int mysteryEffect, struct Piece *piece);
+char *getMysteryLocationName(int mysteryEffect);
 bool boardHasPiece(struct Player *players);
 int getCorrectCellCount(int cellCount);
 int getMovableCellCount
@@ -50,8 +52,8 @@ void formBlock(struct Piece *cell[PIECE_NO]);
 void destroyBlock(struct Piece *cell[PIECE_NO]);
 void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO]);
 void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PIECE_NO]);
-void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece);
-void applyTeleportation(struct Piece *pieces[], int count, struct Piece *cells[][PLAYER_NO]);
+void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece, char *playerName, char *pieceName);
+void applyTeleportation(struct Piece **pieces, int mysteryEffect, int count, struct Piece *cells[][PLAYER_NO]);
 int getDiceValueAfterMysteryEffect(int diceNumber, struct Player *player, int pieceIndex);
 void captureByPiece(struct Piece *piece, struct Piece *cells[][PIECE_NO], int finalCellNo, char *playerName);
 void captureByBlock
@@ -64,6 +66,7 @@ void captureByBlock
 );
 void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
 void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_NO]);
+void handlePieceLandOnMysteryCell(struct Game *game, struct Player *player, struct Piece *cells[][PIECE_NO]);
 
 // Behavior functions
 void redMoveParse(struct Player *player, int redPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
@@ -118,6 +121,7 @@ void finalizeRedMovement
 // Output functions
 void displayPlayerStatusAfterRound(struct Player *players, struct Game *game);
 void displayMysteryCellStatusAfterRound(int mysteryCellNo, int mysteryRounds);
+void displayTeleportationMessage(char* playerName, int count, struct Piece *pieces, char *location);
 void displayMovablePieceStatus
 (
   int movableCellCount,
@@ -138,6 +142,7 @@ void displayMovableBlockStatus(
 
 // game loops
 void initialGameLoop(struct Player *players, struct Game *game);
+void handleMysteryCellLoop(struct Game *game, struct Player *players, struct Piece *cells[][PIECE_NO]);
 void mainGameLoop(struct Player *players, struct Game *game, struct Piece *standardCells[][PLAYER_NO], struct Piece *homeStraight[][MAX_HOME_STRAIGHT/PLAYER_NO]);
 
 #endif // !GAME
