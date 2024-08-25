@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #define PLAYER_NO 4
 #define PIECE_NO 4
+#define EMPTY -999
 #define MAX_DICE_VALUE 6
 #define MAX_STANDARD_CELL 52
 #define HOME_STRAIGHT_DISTANCE 5
