@@ -16,12 +16,12 @@ void playGame()
 {
     struct Game game = {
         0,
-        -1,
+        EMPTY,
         0,
         0,
-        {[0 ... PLAYER_NO - 1] = -1},
-        {[0 ... PLAYER_NO - 1] = -1},
-        -1,
+        {[0 ... PLAYER_NO - 1] = EMPTY},
+        {[0 ... PLAYER_NO - 1] = EMPTY},
+        EMPTY,
 
     };
 
