@@ -851,6 +851,12 @@ void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cel
 
   displayMovablePieceStatus(movableCellCount, diceNumber, playerName, piece, &finalCellNo, cells[finalCellNo]);
 
+  // Exit if movable cell count is 0
+  if (movableCellCount == 0)
+  {
+    return;
+  }
+
   cells[piece->cellNo][pieceIndex] = NULL;
   piece->cellNo = finalCellNo;
   piece->block = false;
@@ -1003,13 +1009,9 @@ void redMoveParse(struct Player *players, int redPlayerIndex, int diceNumber, st
     [0 ... PIECE_NO - 1] = { false, false, false, false, false, false }
   };
 
-  // variables to track piece importance
-  int pieceImportance[] = { 5, 5, 5, 5 };
-  int canAttackCount = 0;
-
+  // do complete movement validation for each pieces
   for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
   {
-
     // check mystery effects
     diceNumber = getDiceValueAfterMysteryEffect(diceNumber, player, pieceIndex);
 
@@ -1027,13 +1029,21 @@ void redMoveParse(struct Player *players, int redPlayerIndex, int diceNumber, st
     {
       validateBlockRedMovement(player, piecePriorities, cells, playerCount, pieceIndex, diceNumber);
     }
+  }
 
+  // variables to track piece importance
+  int pieceImportance[] = { 5, 5, 5, 5 };
+  int canAttackCount = 0;
+
+  // assign piece validation importance
+  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
+  {
     validateRedPieceImportance(piecePriorities, pieceImportance, pieceIndex, &canAttackCount, player->pieces[pieceIndex].block);
   }
 
-  int selectedPiece = getIndexOfSelectedRedPiece(player->pieces, cells, pieceImportance, canAttackCount, diceNumber);
+  int selectedPieceIndex = getIndexOfSelectedRedPiece(player->pieces, cells, pieceImportance, canAttackCount, diceNumber);
 
-  finalizeRedMovement(player, selectedPiece, diceNumber, cells, piecePriorities[selectedPiece].canExitBlock);
+  finalizeRedMovement(player, selectedPieceIndex, diceNumber, cells, piecePriorities[selectedPieceIndex].canExitBlock);
 }
 
 bool initialRedMovementCheck
