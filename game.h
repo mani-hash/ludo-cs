@@ -12,6 +12,10 @@ struct Player createPlayer(int start, char namePrefix, enum Color color);
 struct Player* initializePlayers();
 void initializePlayerOrder(struct Game *game, int maxPlayerIndex);
 
+// error functions
+void tryValueAndCatchError(int targetValue, char comparison, int compareValue);
+void displayErrors();
+
 // helper methods
 enum Color getPieceColor(char colorLetter);
 char* getName(enum Color color);

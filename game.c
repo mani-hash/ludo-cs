@@ -93,12 +93,54 @@ void initializePlayerOrder(struct Game *game, int maxPlayerIndex)
   }
 }
 
+/* Error methods
+ */
+
+void tryValueAndCatchError(int targetValue, char comparison, int compareValue)
+{
+  bool hasError = false;
+  switch (comparison)
+  {
+    case '=':
+      if (targetValue == compareValue)
+      {
+        hasError = true;
+      }
+      break;
+    case '<':
+      if (targetValue < compareValue)
+      {
+        hasError = true;
+      }
+      break;
+    case '>':
+      if (targetValue > compareValue)
+      {
+        hasError = true;
+      }
+  }
+
+  if (hasError)
+  {
+    displayErrors();
+    exit(0);
+  }
+}
+
+void displayErrors()
+{
+  printf("!!!!!====================================================!!!!!");
+  printf("WARNING!!! THE PROGRAM HAS CRASHED!\n");
+  printf("The program faced an unexpected error\n");
+  printf("!!!!!====================================================!!!!!");
+}
+
 /* Helper methods
  */
 
 enum Color getPieceColor(char colorLetter)
 {
-  enum Color color;
+  enum Color color = EMPTY;
   switch (colorLetter)
   {
     case 'R':
@@ -114,6 +156,9 @@ enum Color getPieceColor(char colorLetter)
       color = BLUE;
       break;
   }
+
+  tryValueAndCatchError(color, '=', EMPTY);
+  
   return color;
 }
 
@@ -136,6 +181,12 @@ char* getName(enum Color color)
       name = "Blue";
       break;
   }
+
+  if (name == NULL)
+  {
+    displayErrors();
+    exit(0);
+  }
   return name;
 }
 
@@ -157,6 +208,9 @@ int getStartIndex(enum Color color)
       startIndex = BLUE_START;
       break;
   }
+
+  tryValueAndCatchError(startIndex, '=', EMPTY);
+
   return startIndex;
 }
 
@@ -178,6 +232,9 @@ int getApproachIndex(enum Color color)
       approachIndex = BLUE_APPROACH;
       break;
   }
+
+  tryValueAndCatchError(approachIndex, '=', EMPTY);
+
   return approachIndex;
 }
 
@@ -191,6 +248,8 @@ int getNoOfPiecesInBase(struct Player *player)
       count++;
     }
   }
+
+  tryValueAndCatchError(count, '>', PIECE_NO);
 
   return count;
 }
@@ -220,6 +279,8 @@ int getPlayerCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor)
     }
   }
 
+  tryValueAndCatchError(count, '>', PIECE_NO);
+  
   return count;
 }
 
@@ -237,6 +298,8 @@ int getEnemyCountOfCell(struct Piece *cell[PLAYER_NO], enum Color playerColor)
       count++;
     }
   }
+
+  tryValueAndCatchError(count, '>', PIECE_NO);
 
   return count;
 }
@@ -331,21 +394,36 @@ int getMysteryLocation(int mysteryEffect, struct Piece *piece)
 
 char *getMysteryLocationName(int mysteryEffect)
 {
+  char *name;
   switch (mysteryEffect)
   {
     case 1:
-      return "bhawana";
+      name = "bhawana";
+      break;
     case 2:
-      return "kotuwa";
+      name = "kotuwa";
+      break;
     case 3:
-      return "pita kotuwa";
+      name = "pita kotuwa";
+      break;
     case 4:
-      return "base";
+      name = "base";
+      break;
     case 5:
-      return "X";
+      name = "X";
+      break;
     case 6:
-      return "approach";
+      name = "approach";
+      break;
   }
+
+  if (name == NULL)
+  {
+    displayErrors();
+    exit(0);
+  }
+
+  return name;
 }
 
 bool boardHasPiece(struct Player *players)
@@ -376,6 +454,9 @@ int getCorrectCellCount(int cellCount)
     return cellCount - MAX_STANDARD_CELL;
   }
 
+  tryValueAndCatchError(cellCount, '<', 0);
+  tryValueAndCatchError(cellCount, '>', MAX_STANDARD_CELL - 1);
+  
   return cellCount;
 }
 
