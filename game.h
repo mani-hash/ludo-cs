@@ -20,7 +20,7 @@ int getApproachIndex(enum Color color);
 int getNoOfPiecesInBase(struct Player *player);
 bool canMoveToBoard(int diceNumber);
 int getPlayerCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor);
-int getEnemyCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor);
+int getEnemyCountOfCell(struct Piece *cell[PLAYER_NO], enum Color playerColor);
 bool isPlayerCell(struct Piece *cells[PLAYER_NO], enum Color playerColor);
 bool isBlocked(int playerPieceCount, int enemyPieceCount);
 bool isCellEmpty(struct Piece *cells[PLAYER_NO]);
