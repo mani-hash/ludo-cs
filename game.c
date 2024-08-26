@@ -676,6 +676,7 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, int count, str
     {
       displayTeleportationMessage(playerName, count, pieces[pieceIndex], mysteryLocationName);
       pieces[pieceIndex]->cellNo = BASE;
+      resetPiece(pieces[pieceIndex]);
     }
     return;
   }
@@ -758,6 +759,24 @@ int getDiceValueAfterMysteryEffect(int diceNumber, struct Player *player, int pi
   return diceNumber;
 }
 
+void resetPiece(struct Piece *piece)
+{
+  // reset piece stats
+  piece->cellNo = BASE;
+  piece->captured = 0;
+  piece->clockWise = true;
+  piece->block = false;
+  piece->blockClockWise = true;
+  piece->noOfApproachPasses = 0;
+
+  //reset mystery effects
+  piece->effect.effectActive = false;
+  piece->effect.pieceActive = true;
+  piece->effect.effectActiveRounds = 0;
+  piece->effect.diceMultiplier = 1;
+  piece->effect.diceDivider = 1;
+}
+
 void playRound()
 {
 
@@ -782,7 +801,9 @@ void captureByPiece(struct Piece *piece, struct Piece *cells[][PIECE_NO], int fi
       );
           
       cells[finalCellNo][cellIndex]->cellNo = BASE;
-      // add reset piece functionality later
+      resetPiece(cells[finalCellNo][cellIndex]);
+
+      // clear the pointer
       cells[finalCellNo][cellIndex] = NULL;
 
       // fix later
@@ -818,7 +839,9 @@ void captureByBlock
       );
           
       cells[finalCellNo][cellIndex]->cellNo = BASE;
-      // add reset piece functionality later
+      resetPiece(cells[finalCellNo][cellIndex]);
+
+      // clear the pointer
       cells[finalCellNo][cellIndex] = NULL;
     }
   }
