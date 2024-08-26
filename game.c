@@ -597,35 +597,6 @@ int getCellNoOfRandomBlock(struct Player *player)
   return cellNo;
 }
 
-void separateBlockade(struct Piece *cells[][PIECE_NO], int blockCellNo)
-{
-  int cummulativeDistance = MAX_DICE_VALUE;
-  enum Color color = getPlayerColorInCell(cells[blockCellNo]);
-  int playerCount = getPlayerCountOfCell(cells[blockCellNo], color);
-
-  destroyBlock(cells[blockCellNo]);
-
-  int distanceForOneCell = cummulativeDistance/playerCount;
-
-  for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
-  {
-    if (cells[blockCellNo][cellIndex] != NULL)
-    {
-      // int movableCount = getMovableCellCount(
-      //   cells[blockCellNo][cellIndex]->cellNo,
-      //   distanceForOneCell,
-      //   cells[blockCellNo][cellIndex]->clockWise,
-      //   1,
-      //   cells,
-      //   color
-      // );
-
-      move(cells[blockCellNo][cellIndex], cellIndex, distanceForOneCell, cells);
-    }
-  }
-
-}
-
 int getEnemyDistanceFromHome(struct Piece *cell[PIECE_NO])
 {
   int enemyDistanceFromHome = 0;
@@ -1009,6 +980,34 @@ void captureByBlock
   for (int blockIndex = 0; blockIndex < playerCount; blockIndex++)
   {
     blockPieces[blockIndex]->captured++;
+  }
+}
+
+void separateBlockade(struct Piece *cells[][PIECE_NO], int blockCellNo)
+{
+  int cummulativeDistance = MAX_DICE_VALUE;
+  enum Color color = getPlayerColorInCell(cells[blockCellNo]);
+  int playerCount = getPlayerCountOfCell(cells[blockCellNo], color);
+
+  destroyBlock(cells[blockCellNo]);
+
+  int distanceForOneCell = cummulativeDistance/playerCount;
+
+  for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+  {
+    if (cells[blockCellNo][cellIndex] != NULL)
+    {
+      // int movableCount = getMovableCellCount(
+      //   cells[blockCellNo][cellIndex]->cellNo,
+      //   distanceForOneCell,
+      //   cells[blockCellNo][cellIndex]->clockWise,
+      //   1,
+      //   cells,
+      //   color
+      // );
+
+      move(cells[blockCellNo][cellIndex], cellIndex, distanceForOneCell, cells);
+    }
   }
 }
 

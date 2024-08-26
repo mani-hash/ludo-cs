@@ -49,7 +49,6 @@ int getDistanceFromHome(struct Piece *piece);
 int getEnemyDistanceFromHome(struct Piece *cell[PIECE_NO]);
 bool playerHasBlock(struct Player *player);
 int getCellNoOfRandomBlock(struct Player *player);
-void separateBlockade(struct Piece *cells[][PIECE_NO], int blockCellNo);
 
 // game methods/actions
 int rollDice();
@@ -72,6 +71,7 @@ void captureByBlock
   int finalCellNo,
   char *playerName
 );
+void separateBlockade(struct Piece *cells[][PIECE_NO], int blockCellNo);
 void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
 void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_NO]);
 void handlePieceLandOnMysteryCell(struct Game *game, struct Player *player, struct Piece *cells[][PIECE_NO]);
