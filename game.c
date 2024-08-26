@@ -98,63 +98,87 @@ void initializePlayerOrder(struct Game *game, int maxPlayerIndex)
 
 enum Color getPieceColor(char colorLetter)
 {
+  enum Color color;
   switch (colorLetter)
   {
     case 'R':
-      return RED;
+      color = RED;
+      break;
     case 'G':
-      return GREEN;
+      color = GREEN;
+      break;
     case 'Y':
-      return YELLOW;
+      color = YELLOW;
+      break;
     case 'B':
-      return BLUE;
+      color = BLUE;
+      break;
   }
+  return color;
 }
 
 // Get name of the current player
 char* getName(enum Color color)
 {
+  char *name;
   switch (color)
   {
     case RED:
-      return "Red";
+      name = "Red";
+      break;
     case GREEN:
-      return "Green";
+      name = "Green";
+      break;
     case YELLOW:
-      return "Yellow";
+      name = "Yellow";
+      break;
     case BLUE:
-      return "Blue";
+      name = "Blue";
+      break;
   }
+  return name;
 }
 
 int getStartIndex(enum Color color)
 {
+  int startIndex = EMPTY;
   switch (color)
   {
     case RED:
-      return RED_START;
+      startIndex = RED_START;
+      break;
     case GREEN:
-      return GREEN_START;
+      startIndex = GREEN_START;
+      break;
     case YELLOW:
-      return YELLOW_START;
+      startIndex = YELLOW_START;
+      break;
     case BLUE:
-      return BLUE_START;
+      startIndex = BLUE_START;
+      break;
   }
+  return startIndex;
 }
 
 int getApproachIndex(enum Color color)
 {
+  int approachIndex = EMPTY;
   switch (color)
   {
     case RED:
-      return RED_APPROACH;
+      approachIndex = RED_APPROACH;
+      break;
     case GREEN:
-      return GREEN_APPROACH;
+      approachIndex = GREEN_APPROACH;
+      break;
     case YELLOW:
-      return YELLOW_APPROACH;
+      approachIndex = YELLOW_APPROACH;
+      break;
     case BLUE:
-      return BLUE_APPROACH;
+      approachIndex = BLUE_APPROACH;
+      break;
   }
+  return approachIndex;
 }
 
 int getNoOfPiecesInBase(struct Player *player)
