@@ -47,6 +47,9 @@ enum Color getPlayerColorInCell(struct Piece *cell[PIECE_NO]);
 int getCaptureCountOfPlayer(struct Player *player);
 int getDistanceFromHome(struct Piece *piece);
 int getEnemyDistanceFromHome(struct Piece *cell[PIECE_NO]);
+bool playerHasBlock(struct Player *player);
+int getCellNoOfRandomBlock(struct Player *player);
+void separateBlockade(struct Piece *cells[][PIECE_NO], int blockCellNo);
 
 // game methods/actions
 int rollDice();

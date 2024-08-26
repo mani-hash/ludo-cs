@@ -456,7 +456,7 @@ int getCorrectCellCount(int cellCount)
 
   tryValueAndCatchError(cellCount, '<', 0);
   tryValueAndCatchError(cellCount, '>', MAX_STANDARD_CELL - 1);
-  
+
   return cellCount;
 }
 
@@ -569,6 +569,61 @@ int getDistanceFromHome(struct Piece *piece)
 
   distanceFromHome += HOME_STRAIGHT_DISTANCE;
   return distanceFromHome;
+}
+
+bool playerHasBlock(struct Player *player)
+{
+  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
+  {
+    if (player->pieces[pieceIndex].block)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+int getCellNoOfRandomBlock(struct Player *player)
+{
+  int cellNo = EMPTY;
+  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
+  {
+    if (player->pieces[pieceIndex].block)
+    {
+      cellNo = player->pieces[pieceIndex].cellNo;
+      break;
+    }
+  }
+  return cellNo;
+}
+
+void separateBlockade(struct Piece *cells[][PIECE_NO], int blockCellNo)
+{
+  int cummulativeDistance = MAX_DICE_VALUE;
+  enum Color color = getPlayerColorInCell(cells[blockCellNo]);
+  int playerCount = getPlayerCountOfCell(cells[blockCellNo], color);
+
+  destroyBlock(cells[blockCellNo]);
+
+  int distanceForOneCell = cummulativeDistance/playerCount;
+
+  for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+  {
+    if (cells[blockCellNo][cellIndex] != NULL)
+    {
+      // int movableCount = getMovableCellCount(
+      //   cells[blockCellNo][cellIndex]->cellNo,
+      //   distanceForOneCell,
+      //   cells[blockCellNo][cellIndex]->clockWise,
+      //   1,
+      //   cells,
+      //   color
+      // );
+
+      move(cells[blockCellNo][cellIndex], cellIndex, distanceForOneCell, cells);
+    }
+  }
+
 }
 
 int getEnemyDistanceFromHome(struct Piece *cell[PIECE_NO])
@@ -1737,6 +1792,13 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
         }
 
       } while (minConsecutive < 3);
+
+      // separate block when 6 is consecutively thrown
+      if (minConsecutive >= 3 && playerHasBlock(&players[playerIndex]))
+      {
+        int blockCellNo = getCellNoOfRandomBlock(&players[playerIndex]);
+        separateBlockade(standardCells, blockCellNo);
+      }
     } 
 
     displayPlayerStatusAfterRound(players, game);
