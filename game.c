@@ -173,7 +173,7 @@ int getNoOfPiecesInBase(struct Player *player)
 
 bool canMoveToBoard(int diceNumber)
 {
-  if (diceNumber == 6)
+  if (diceNumber == MAX_DICE_VALUE)
   {
     return true;
   }
@@ -199,15 +199,15 @@ int getPlayerCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor)
   return count;
 }
 
-int getEnemyCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor)
+int getEnemyCountOfCell(struct Piece *cell[PLAYER_NO], enum Color playerColor)
 {
   int count = 0;
   for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
   {
     if (
-      cells[cellIndex] != NULL 
+      cell[cellIndex] != NULL 
       &&
-      getPieceColor(cells[cellIndex]->name[0]) != playerColor
+      getPieceColor(cell[cellIndex]->name[0]) != playerColor
     )
     {
       count++;
@@ -279,21 +279,30 @@ int getMysteryEffectNumber(int location)
 
 int getMysteryLocation(int mysteryEffect, struct Piece *piece)
 {
+  int mysteryLocation = EMPTY;
   switch (mysteryEffect)
   {
     case 1:
-      return BHAWANA;
+      mysteryLocation = BHAWANA;
+      break;
     case 2:
-      return KOTUWA;
+      mysteryLocation = KOTUWA;
+      break;
     case 3:
-      return PITA_KOTUWA;
+      mysteryLocation = PITA_KOTUWA;
+      break;
     case 4:
-      return BASE;
+      mysteryLocation = BASE;
+      break;
     case 5:
-      return getStartIndex(piece->name[0]);
+      mysteryLocation = getStartIndex(getPieceColor(piece->name[0]));
+      break;
     case 6:
-      return getApproachIndex(piece->name[0]);
+      mysteryLocation = getApproachIndex(getPieceColor(piece->name[0]));
+      break;
   }
+
+  return mysteryLocation;
 }
 
 char *getMysteryLocationName(int mysteryEffect)
@@ -500,6 +509,11 @@ void formBlock(struct Piece *cell[PIECE_NO])
 {
   int maxDistanceFromHome = 0;
   bool selectedClockWise = true;
+
+  if (cell == NULL)
+  {
+    printf("Oh boy this array is null\n");
+  }
   for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
   {
     if (cell[cellIndex] != NULL)
@@ -510,6 +524,7 @@ void formBlock(struct Piece *cell[PIECE_NO])
         maxDistanceFromHome = distanceFromHome;
         selectedClockWise = cell[cellIndex]->clockWise;
       }
+      printf("%s is name of piece", cell[cellIndex]->name);
       cell[cellIndex]->block = true;
     }
   }
@@ -544,18 +559,25 @@ void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell
 
   if (!isBlocked(1, enemyCount))
   {
-    int cellIndex;
-    for (cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
+    for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
     {
       if (cell[cellIndex] != NULL && cell[cellIndex]->name[0] != piece->name[0])
       {
         cell[cellIndex]->cellNo = BASE;
+        cell[cellIndex] = NULL;
         piece->captured += 1;
         break;
       }
     }
 
-    cell[cellIndex == PLAYER_NO ? cellIndex - 1 : cellIndex] = piece;
+    for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+    {
+      if (cell[cellIndex] == NULL)
+      {
+        cell[cellIndex] = piece;
+        break;
+      }
+    }
     piece->cellNo = player->startIndex;
     piece->clockWise = getDirectionFromToss();
 
@@ -705,14 +727,14 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, int count, str
         displayTeleportationMessage(playerName, count, pieces[pieceIndex], mysteryLocationName);
         applyMysteryEffect(mysteryEffect, mysteryLocation, pieces[pieceIndex], playerName, pieces[pieceIndex]->name);
 
-        // if (mysteryEffect == getMysteryEffectNumber(PITA_KOTUWA) && !pieces[pieceIndex]->clockWise)
-        // {
-        //   // int newMysteryLocation = getMysteryLocation(getMysteryEffectNumber(KOTUWA), pieces[pieceIndex]);
-        //   int newMysteryEffect = getMysteryEffectNumber(KOTUWA);
-        //   struct Piece *newPieces = {pieces[pieceIndex]};
+        if (mysteryEffect == getMysteryEffectNumber(PITA_KOTUWA) && !pieces[pieceIndex]->clockWise)
+        {
+          // int newMysteryLocation = getMysteryLocation(getMysteryEffectNumber(KOTUWA), pieces[pieceIndex]);
+          int newMysteryEffect = getMysteryEffectNumber(KOTUWA);
+          struct Piece **newPieces = {&pieces[pieceIndex]};
 
-        //   applyTeleportation(newPieces, newMysteryEffect, 1, cells);
-        // }
+          applyTeleportation(newPieces, newMysteryEffect, 1, cells);
+        }
         break;
       }
     }
@@ -871,6 +893,15 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
   char *playerName = getName(color);
   int playerCount = getPlayerCountOfCell(cells[piece->cellNo], color);
   struct Piece *blockPieces[playerCount];
+
+  // create a block piece array to keep track of block
+  for (int cellIndex = 0, blockIndex = 0; cellIndex < playerCount; cellIndex++)
+  {
+    if (cells[piece->cellNo][cellIndex] != NULL)
+    {
+      blockPieces[blockIndex] = cells[piece->cellNo][cellIndex];
+    }
+  }
   
   int movableCellCount = 
     getMovableCellCount
@@ -888,6 +919,12 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
   int finalCellNo = getCorrectCellCount(piece->cellNo + (diceNumber * directonConstant));
 
   displayMovableBlockStatus(movableCellCount, diceNumber, playerName, piece, &finalCellNo, cells[finalCellNo]);
+
+  // exit if movable cell count is 0
+  if (movableCellCount == 0)
+  {
+    return;
+  }
 
   if (!isCellEmpty(cells[finalCellNo]))
   {
@@ -1336,11 +1373,11 @@ void displayMysteryCellStatusAfterRound(int mysteryCellNo, int mysteryRounds)
 {
   if (mysteryCellNo == EMPTY)
   {
-    printf("The required conditions for generating mystery cells have not been met");
+    printf("The required conditions for generating mystery cells have not been met\n");
   }
   else
   {
-    printf("The mystery cell is at L%d and will be at that location for the next %d rounds",
+    printf("The mystery cell is at L%d and will be at that location for the next %d rounds\n",
       mysteryCellNo,
       mysteryRounds
     );
@@ -1354,7 +1391,7 @@ void displayTeleportationMessage(char* playerName, int count, struct Piece *piec
   {
     printf("%s ", pieces[pieceIndex].name);
   }
-  printf("teleported to %s", location);
+  printf("teleported to %s\n", location);
 }
 
 void displayMovablePieceStatus
@@ -1395,7 +1432,7 @@ void displayMovablePieceStatus
   }
   else
   {
-    printf("%s moves piece %s from location L%d to L%d by %d units in %s direction",
+    printf("%s moves piece %s from location L%d to L%d by %d units in %s direction\n",
       playerName,
       piece->name,
       piece->cellNo,
@@ -1482,7 +1519,7 @@ void initialGameLoop(struct Player *players, struct Game *game)
 
 void handleMysteryCellLoop(struct Game *game, struct Player *players, struct Piece *cells[][PIECE_NO])
 {
-  if (game->roundsTillMysteryCell <= 2)
+  if (game->roundsTillMysteryCell < 2)
   {
     if (boardHasPiece(players))
     {
@@ -1495,7 +1532,7 @@ void handleMysteryCellLoop(struct Game *game, struct Player *players, struct Pie
     {
       allocateMysteryCell(game, cells);
       game->mysteryRounds = 4;
-      printf("A mystery cell has spawned in location L%d and will be at this location for the next %d rounds",
+      printf("A mystery cell has spawned in location L%d and will be at this location for the next %d rounds\n",
         game->mysteryCellNo,
         game->mysteryRounds
       );
