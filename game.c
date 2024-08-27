@@ -613,6 +613,21 @@ int getEnemyDistanceFromHome(struct Piece *cell[PIECE_NO])
   return enemyDistanceFromHome;
 }
 
+bool canEnterHomeStraight(struct Piece *piece)
+{
+  if (piece->captured == 0)
+  {
+    return false;
+  }
+
+  if (!piece->clockWise && piece->noOfApproachPasses == 0)
+  {
+    return false;
+  }
+
+  return true;
+}
+
 /* Game methods/actions
  */
 
@@ -655,7 +670,6 @@ void formBlock(struct Piece *cell[PIECE_NO])
         maxDistanceFromHome = distanceFromHome;
         selectedClockWise = cell[cellIndex]->clockWise;
       }
-      printf("%s is name of piece", cell[cellIndex]->name);
       cell[cellIndex]->block = true;
     }
   }
@@ -1177,6 +1191,32 @@ void handlePieceLandOnMysteryCell(struct Game *game, struct Player *player, stru
     int mysteryEffect = getMysteryEffect();
     applyTeleportation(pieces, mysteryEffect, count, cells);
   }
+}
+
+void incrementHomeApproachPasses(struct Piece *piece, struct Piece *cells[][PIECE_NO], int finalCellNo)
+{
+  enum Color color = getPieceColor(piece->name[0]);
+  int approachIndex = getApproachIndex(color);
+
+  bool approachInRange = 
+    (piece->cellNo < approachIndex && approachIndex <= finalCellNo) ||
+    (piece->cellNo > approachIndex && approachIndex >= finalCellNo);
+
+  // Yellow has special case because it's appraoch is between 51 and 0
+  if (color == YELLOW)
+  {
+    int cellDifference = finalCellNo - piece->cellNo;
+    approachInRange = (cellDifference > MAX_DICE_VALUE * 2);
+    // note: MAX_DICE_VALUE * 2 implies that the maximum
+    // possible value a piece can move is 12 due to mystery
+    // effects
+  }
+
+  if (approachInRange)
+  {
+    piece->noOfApproachPasses++;
+  }
+
 }
 
 /* Behavior functions
