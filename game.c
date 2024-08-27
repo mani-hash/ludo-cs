@@ -628,6 +628,25 @@ bool canEnterHomeStraight(struct Piece *piece)
   return true;
 }
 
+bool canMoveToHome(int cellNo, int diceNumber)
+{
+  if (cellNo + diceNumber == HOME)
+  {
+    return true;
+  }
+  return false;
+}
+
+bool canMoveInHomeStraight(int cellNo, int diceNumber)
+{
+  if (cellNo + diceNumber <= HOME)
+  {
+    return true;
+  }
+
+  return false;
+}
+
 /* Game methods/actions
  */
 
@@ -1029,6 +1048,13 @@ void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cel
 {
   enum Color color = getPieceColor(piece->name[0]);
   char *playerName = getName(color);
+
+  // if piece is in home straight
+  // if (piece->cellNo >= MAX_STANDARD_CELL)
+  // {
+  //   moveInHomeStraight(piece, diceNumber);
+  //   return;
+  // }
   
   int movableCellCount = 
     getMovableCellCount
@@ -1045,6 +1071,7 @@ void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cel
   int directonConstant = piece->clockWise ? 1 : -1;
   int finalCellNo = getCorrectCellCount(piece->cellNo + (diceNumber * directonConstant));
 
+  // fix issue with normal move display msgs and home straight display msgs clashing
   displayMovablePieceStatus(movableCellCount, diceNumber, playerName, piece, &finalCellNo, cells[finalCellNo]);
 
   // Exit if movable cell count is 0
@@ -1052,6 +1079,17 @@ void move(struct Piece *piece, int pieceIndex, int diceNumber, struct Piece *cel
   {
     return;
   }
+
+  if (canEnterHomeStraight(piece) && finalCellNo != getApproachIndex(color))
+  {
+    if (canMoveInHomeStraight(piece->cellNo, diceNumber))
+    {
+      moveInHomeStraight(piece, diceNumber);
+      return;
+    }
+  }
+
+  incrementHomeApproachPasses(piece, cells, finalCellNo);
 
   cells[piece->cellNo][pieceIndex] = NULL;
   piece->cellNo = finalCellNo;
@@ -1102,6 +1140,7 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
     if (cells[piece->cellNo][cellIndex] != NULL)
     {
       blockPieces[blockIndex] = cells[piece->cellNo][cellIndex];
+      blockIndex++;
     }
   }
   
@@ -1120,12 +1159,51 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
   int directonConstant = piece->blockClockWise ? 1 : -1;
   int finalCellNo = getCorrectCellCount(piece->cellNo + (diceNumber * directonConstant));
 
+  // fix issue with normal move display msgs and home straight display msgs clashing
   displayMovableBlockStatus(movableCellCount, diceNumber, playerName, piece, &finalCellNo, cells[finalCellNo]);
 
   // exit if movable cell count is 0
   if (movableCellCount == 0)
   {
     return;
+  }
+
+  for (int blockIndex = 0; blockIndex < playerCount; blockIndex++)
+  {
+    if (canEnterHomeStraight(blockPieces[blockIndex]) && finalCellNo != getApproachIndex(color))
+    {
+      if (getMovableCellCount
+      (
+        blockPieces[blockIndex]->cellNo,
+        diceNumber,
+        blockPieces[blockIndex]->clockWise,
+        playerCount-1,
+        cells,
+        color
+      ) == movableCellCount)
+      {
+        // move piece to homestraight
+        blockPieces[blockIndex]->block = false;
+
+        if (canMoveInHomeStraight(blockPieces[blockIndex]->cellNo, diceNumber))
+        {
+          char *pieceName = blockPieces[blockIndex]->name;
+
+          // loop through the cell block and clear the piece 
+          for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+          {
+            if (strcmp(pieceName, cells[piece->cellNo][cellIndex]->name))
+            {
+              cells[piece->cellNo][cellIndex]->block = false; // add reset piece for home
+              cells[piece->cellNo][cellIndex] = NULL;
+            }
+          }
+          moveInHomeStraight(blockPieces[blockIndex], diceNumber); // fix diceNumber issue
+          return;
+        }
+      }
+    }
+    incrementHomeApproachPasses(blockPieces[blockIndex], cells, finalCellNo);
   }
 
   if (!isCellEmpty(cells[finalCellNo]))
@@ -1156,6 +1234,27 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
     printf("Block of %s has formed another block",
       playerName
     );
+  }
+}
+
+void moveInHomeStraight(struct Piece *piece, int diceNumber)
+{
+  enum Color color = getPieceColor(piece->name[0]);
+  char *playerName = getName(color);
+
+  if (canMoveToHome(piece->cellNo, diceNumber))
+  {
+    printf("%s piece %s has successfully reached Home!\n", playerName, piece->name);
+    piece->cellNo = HOME;
+  }
+  else if (piece->cellNo + diceNumber < HOME)
+  {
+    printf("%s piece %s has moved forward in home straight by %d units\n", playerName, piece->name, diceNumber);
+    piece->cellNo += diceNumber;
+  }
+  else
+  {
+    printf("%s piece %s cannot move in homestraight since it has rolled greater value than home", playerName, piece->name);
   }
 }
 
@@ -1290,7 +1389,7 @@ bool initialRedMovementCheck
   int enemyCountOfCellBlock;
 
   // if piece is already at home, no movement can be applied!
-  if (cellNo == HOME || diceNumber == 0)
+  if (cellNo >= MAX_STANDARD_CELL || diceNumber == 0)
   {
     return false;
   }

@@ -22,7 +22,7 @@ enum Color {
 
 enum Locations {
   BASE = -1,
-  HOME = -2,
+  HOME = MAX_STANDARD_CELL + HOME_STRAIGHT_DISTANCE,
   BHAWANA = 9,
   KOTUWA = 27,
   PITA_KOTUWA = 46,
