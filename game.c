@@ -1335,7 +1335,6 @@ void redMoveParse(struct Player *players, int redPlayerIndex, int diceNumber, st
   {
     // check mystery effects
     diceNumber = getDiceValueAfterMysteryEffect(diceNumber, player, pieceIndex);
-
     if (!initialRedMovementCheck(player, piecePriorities, cells, pieceIndex, diceNumber))
     {
       continue;
@@ -1391,15 +1390,23 @@ bool initialRedMovementCheck
   // if piece is already at home, no movement can be applied!
   if (cellNo >= MAX_STANDARD_CELL || diceNumber == 0)
   {
+    if (cellNo < HOME)
+    {
+      piecePriorities[pieceIndex].canFullMove = true;
+    }
     return false;
   }
 
-  if (cellNo == BASE && !isBlocked(1, getEnemyCountOfCell(cells[getStartIndex(player->color)], player->color)) && canMoveToBoard(diceNumber))
+  if (cellNo == BASE)
   {
-    piecePriorities[pieceIndex].canMoveFromBase = true;
-    if (getEnemyCountOfCell(cells[getStartIndex(player->color)], player->color) != 0)
+    if (!isBlocked(1, getEnemyCountOfCell(cells[getStartIndex(player->color)], player->color)) && canMoveToBoard(diceNumber))
     {
-      piecePriorities[pieceIndex].canAttack = true;
+      piecePriorities[pieceIndex].canMoveFromBase = true;
+      if (getEnemyCountOfCell(cells[getStartIndex(player->color)], player->color) != 0)
+      {
+        piecePriorities[pieceIndex].canAttack = true;
+      }
+
     }
     return false;
   }
@@ -1875,7 +1882,7 @@ void handleMysteryCellLoop(struct Game *game, struct Player *players, struct Pie
   }
 }
 
-void mainGameLoop(struct Player *players, struct Game *game, struct Piece *standardCells[][PLAYER_NO], struct Piece *homeStraight[][MAX_HOME_STRAIGHT/PLAYER_NO])
+void mainGameLoop(struct Player *players, struct Game *game, struct Piece *standardCells[][PLAYER_NO])
 {
   // test counter
   int test = 0;
