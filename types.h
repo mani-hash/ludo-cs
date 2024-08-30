@@ -12,6 +12,7 @@
 #define MAX_COLORS 4
 #define APPROACH_DIFFERENCE 2
 #define MYSTERY_LOCATIONS 6
+#define MAX_PRIORITY 10
 
 enum Color {
   YELLOW,
