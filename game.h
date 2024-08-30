@@ -117,7 +117,7 @@ void validateRedPieceImportance(
   int *pieceImportance,
   int pieceIndex,
   int *canAttackCount,
-  bool blockade
+  bool isPartofBlockade
 );
 int getIndexOfSelectedRedPiece
 (
