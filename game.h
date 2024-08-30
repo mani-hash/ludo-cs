@@ -108,7 +108,6 @@ void validateBlockRedMovement(
   struct Player *player,
   struct RedPriority *piecePriorities,
   struct Piece *cells[][PIECE_NO],
-  int playerCount,
   int pieceIndex,
   int diceNumber
 );
