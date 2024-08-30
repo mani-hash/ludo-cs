@@ -1252,9 +1252,10 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
       {
         if (cells[piece->cellNo][cellIndex] != NULL)
         {
-          if (strcmp(cells[piece->cellNo][cellIndex]->name, blockPieces[blockIndex]->name))
+          // potential to cause errors in future
+          if (cells[piece->cellNo][cellIndex]->name == blockPieces[blockIndex]->name)
           {
-          cells[piece->cellNo][cellIndex] = NULL;
+            cells[piece->cellNo][cellIndex] = NULL;
           }
         }
       }
@@ -1295,6 +1296,7 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
     if (cells[finalCellNo][cellIndex] == NULL)
     {
       cells[finalCellNo][blockIndex] = blockPieces[blockIndex];
+      blockPieces[blockIndex]->cellNo = finalCellNo;
 
       blockIndex++;
     }
@@ -2112,23 +2114,23 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
       break;
     }
 
-    // for (int i = 0; i < MAX_STANDARD_CELL; i++)
-    // {
-    //   for (int j = 0; j < PIECE_NO; j++)
-    //   {
-    //     if (standardCells[i][j] == NULL)
-    //     {
-    //       printf("[%d][%d] = NULL\n", i, j);
-    //     }
-    //     else
-    //     {
-    //       printf("[%d][%d] = %p\n", i, j, standardCells[i][j]);
-    //     }
-    //   }
-    // }
-    // for (int p = 0; p < PIECE_NO; p++)
-    // {
-    //   printf("%d = %p\n", p, &players[2].pieces[p]);
-    // }
+    for (int i = 0; i < MAX_STANDARD_CELL; i++)
+    {
+      for (int j = 0; j < PIECE_NO; j++)
+      {
+        if (standardCells[i][j] == NULL)
+        {
+          printf("[%d][%d] = NULL\n", i, j);
+        }
+        else
+        {
+          printf("[%d][%d] = %p\n", i, j, standardCells[i][j]);
+        }
+      }
+    }
+    for (int p = 0; p < PIECE_NO; p++)
+    {
+      printf("%d = %p\n", p, &players[2].pieces[p]);
+    }
   }
 }
