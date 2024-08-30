@@ -15,7 +15,7 @@ struct Piece createPiece(char namePrefix, char nameSuffix)
   struct Piece piece;
 
   piece.cellNo = BASE;
-  piece.captured = 1;
+  piece.captured = 0;
   strncpy(piece.name, name, sizeof(piece.name) - 1);
   piece.name[sizeof(piece.name) - 1] = '\0'; //explicit null termination
   piece.clockWise = true;
@@ -170,7 +170,7 @@ enum Color getPieceColor(char colorLetter)
       break;
   }
 
-  tryValueAndCatchError(color, '=', EMPTY);
+  // tryValueAndCatchError(color, '=', EMPTY);
   
   return color;
 }
@@ -195,11 +195,11 @@ char* getName(enum Color color)
       break;
   }
 
-  if (name == NULL)
-  {
-    displayErrors();
-    exit(0);
-  }
+  // if (name == NULL)
+  // {
+  //   displayErrors();
+  //   exit(0);
+  // }
   return name;
 }
 
@@ -222,7 +222,7 @@ int getStartIndex(enum Color color)
       break;
   }
 
-  tryValueAndCatchError(startIndex, '=', EMPTY);
+  // tryValueAndCatchError(startIndex, '=', EMPTY);
 
   return startIndex;
 }
@@ -246,7 +246,7 @@ int getApproachIndex(enum Color color)
       break;
   }
 
-  tryValueAndCatchError(approachIndex, '=', EMPTY);
+  // tryValueAndCatchError(approachIndex, '=', EMPTY);
 
   return approachIndex;
 }
@@ -262,7 +262,7 @@ int getNoOfPiecesInBase(struct Player *player)
     }
   }
 
-  tryValueAndCatchError(count, '>', PIECE_NO);
+  // tryValueAndCatchError(count, '>', PIECE_NO);
 
   return count;
 }
@@ -292,7 +292,7 @@ int getPlayerCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor)
     }
   }
 
-  tryValueAndCatchError(count, '>', PIECE_NO);
+  // tryValueAndCatchError(count, '>', PIECE_NO);
   
   return count;
 }
@@ -312,7 +312,7 @@ int getEnemyCountOfCell(struct Piece *cell[PLAYER_NO], enum Color playerColor)
     }
   }
 
-  tryValueAndCatchError(count, '>', PIECE_NO);
+  // tryValueAndCatchError(count, '>', PIECE_NO);
 
   return count;
 }
@@ -451,11 +451,11 @@ char *getMysteryLocationName(int mysteryEffect)
       break;
   }
 
-  if (name == NULL)
-  {
-    displayErrors();
-    exit(0);
-  }
+  // if (name == NULL)
+  // {
+  //   displayErrors();
+  //   exit(0);
+  // }
 
   return name;
 }
@@ -488,8 +488,8 @@ int getCorrectCellCount(int cellCount)
     return cellCount - MAX_STANDARD_CELL;
   }
 
-  tryValueAndCatchError(cellCount, '<', 0);
-  tryValueAndCatchError(cellCount, '>', MAX_STANDARD_CELL - 1);
+  // tryValueAndCatchError(cellCount, '<', 0);
+  // tryValueAndCatchError(cellCount, '>', MAX_STANDARD_CELL - 1);
 
   return cellCount;
 }
@@ -859,7 +859,7 @@ void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *pi
       }
       else
       {
-        printf("%s piece %s is moving in counter clockwise direction direction. Teleporting to Kotuwa from pitakotuwa\n", playerName, pieceName);
+        printf("%s piece %s is moving in counter clockwise direction. Teleporting to Kotuwa from pitakotuwa\n", playerName, pieceName);
 
         piece->effect.effectActive = true;
         piece->effect.pieceActive = false;
@@ -880,6 +880,12 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, int count, str
 
   if (mysteryLocation == BASE)
   {
+    // Nullify previous cell array elements
+    for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+    {
+      cells[pieces[0]->cellNo][cellIndex] = NULL;
+    }
+    
     for (int pieceIndex = 0; pieceIndex < count; pieceIndex++)
     {
       displayTeleportationMessage(playerName, count, pieces[pieceIndex], mysteryLocationName);
@@ -941,11 +947,10 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, int count, str
 
         if (mysteryEffect == getMysteryEffectNumber(PITA_KOTUWA) && !pieces[pieceIndex]->clockWise)
         {
-          // int newMysteryLocation = getMysteryLocation(getMysteryEffectNumber(KOTUWA), pieces[pieceIndex]);
           int newMysteryEffect = getMysteryEffectNumber(KOTUWA);
           struct Piece **newPieces = {&pieces[pieceIndex]};
 
-          applyTeleportation(newPieces, newMysteryEffect, 1, cells);
+          applyTeleportation(newPieces, newMysteryEffect, count, cells);
         }
         break;
       }
@@ -1204,8 +1209,13 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
   struct Piece *blockPieces[playerCount];
 
   // create a block piece array to keep track of block
-  for (int cellIndex = 0, blockIndex = 0; cellIndex < playerCount; cellIndex++)
+  for (int cellIndex = 0, blockIndex = 0; cellIndex < PIECE_NO; cellIndex++)
   {
+    if (blockIndex >= playerCount)
+    {
+      break;
+    }
+
     if (cells[piece->cellNo][cellIndex] != NULL)
     {
       blockPieces[blockIndex] = cells[piece->cellNo][cellIndex];
@@ -1259,7 +1269,7 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
     cells[piece->cellNo][cellIndex] = NULL;
   }
 
-  displayMovableBlockStatus(movableCellCount, diceNumber, playerName, piece, finalCellNo, cells[finalCellNo]);
+  displayMovableBlockStatus(movableCellCount, blockDiceNumber, playerName, piece, finalCellNo, cells[finalCellNo]);
 
   if (!isCellEmpty(cells[finalCellNo]))
   {
@@ -1275,6 +1285,13 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
 
   for (int cellIndex = 0, blockIndex = 0; cellIndex < PIECE_NO; cellIndex++)
   {
+    // exit loop if block index exceeds the maximum
+    // no of player counts in array
+    if (blockIndex >= playerCount)
+    {
+      break;
+    }
+
     if (cells[finalCellNo][cellIndex] == NULL)
     {
       cells[finalCellNo][blockIndex] = blockPieces[blockIndex];
@@ -1527,8 +1544,7 @@ bool initialRedMovementCheck
     if (isBlockadeMovable)
     {
       int blockDirectionConstant = player->pieces[pieceIndex].blockClockWise ? 1 : -1;
-      maxBlockCellNo = cellNo + ((diceNumber/playerCount) * blockDirectionConstant);
-      maxBlockCellNo = (maxBlockCellNo < 0) ? MAX_STANDARD_CELL + maxBlockCellNo : maxBlockCellNo;
+      maxBlockCellNo = getCorrectCellCount(cellNo + ((diceNumber/playerCount) * blockDirectionConstant));
       enemyCountOfCellBlock = getEnemyCountOfCell(cells[maxBlockCellNo], player->color);
     }
   }
@@ -1645,9 +1661,12 @@ void validateRedPieceImportance(
   int *pieceImportance,
   int pieceIndex,
   int *canAttackCount,
-  bool blockade
+  bool isPartOfBlockade
 )
 {
+  // track movability of a piece
+  int movable = 2;
+
   if (!piecePriorities[pieceIndex].canAttack)
   {
     // if can't capture
@@ -1665,14 +1684,23 @@ void validateRedPieceImportance(
     if (!piecePriorities[pieceIndex].canFullMove)
     {
       pieceImportance[pieceIndex] -= 1;
+      movable--;
     }
       
     if (!piecePriorities[pieceIndex].canPartialMove)
     {
       pieceImportance[pieceIndex] -= 1;
+      movable--;
     }
 
-    if (blockade && !piecePriorities[pieceIndex].canExitBlock)
+    // if piece cannot be moved set it to the lowest
+    // possible priority
+    if (!movable)
+    {
+      pieceImportance[pieceIndex] = EMPTY;
+    }
+
+    if (isPartOfBlockade && !piecePriorities[pieceIndex].canExitBlock)
     {
       pieceImportance[pieceIndex] -= 1;
     }
@@ -1693,7 +1721,7 @@ int getIndexOfSelectedRedPiece
   int diceNumber
 )
 {
-  int selectedPiece = EMPTY;
+  int selectedPiece = 0;
   int maxPriority = EMPTY;
   int prevEnemyDistanceFromHome = MAX_STANDARD_CELL;
 
@@ -2007,10 +2035,12 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
       printf("%s player rolled %d\n\n", getName(players[playerIndex].color), diceNumber);
 
       int minConsecutive = 0;
-      int captureCount = getCaptureCountOfPlayer(&players[playerIndex]);
 
       do
       {
+        // capture count should be calculated after each move
+        // to prevent infinite loops
+        int captureCount = getCaptureCountOfPlayer(&players[playerIndex]);
         switch (players[playerIndex].color)
         {
           case RED:
@@ -2077,9 +2107,28 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
     test++;
 
     //test loop stop
-    if (test >= 5000)
+    if (test >= 10000)
     {
       break;
     }
+
+    // for (int i = 0; i < MAX_STANDARD_CELL; i++)
+    // {
+    //   for (int j = 0; j < PIECE_NO; j++)
+    //   {
+    //     if (standardCells[i][j] == NULL)
+    //     {
+    //       printf("[%d][%d] = NULL\n", i, j);
+    //     }
+    //     else
+    //     {
+    //       printf("[%d][%d] = %p\n", i, j, standardCells[i][j]);
+    //     }
+    //   }
+    // }
+    // for (int p = 0; p < PIECE_NO; p++)
+    // {
+    //   printf("%d = %p\n", p, &players[2].pieces[p]);
+    // }
   }
 }
