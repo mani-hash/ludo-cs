@@ -102,12 +102,19 @@ struct GreenPriority
 
 struct YellowPriority
 {
-
+  bool canMoveFromBase;
+  bool canFullMove;
+  bool canPartialMove;
+  bool canAttack;
+  bool canExitBlock;
 };
 
 struct BluePriority
 {
-
+  bool canFullMove;
+  bool canPartialMove;
+  bool preferToMove;
+  bool canExitBlock;
 };
 
 #endif // !TYPES_H
