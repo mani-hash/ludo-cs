@@ -4,7 +4,10 @@
 #include <stdbool.h>
 #define PLAYER_NO 4
 #define PIECE_NO 4
+#define EMPTY -999
+#define MAX_DICE_VALUE 6
 #define MAX_STANDARD_CELL 52
+#define HOME_STRAIGHT_DISTANCE 5
 #define MAX_HOME_STRAIGHT 20
 #define MAX_COLORS 4
 #define APPROACH_DIFFERENCE 2
@@ -19,7 +22,7 @@ enum Color {
 
 enum Locations {
   BASE = -1,
-  HOME = -2,
+  HOME = MAX_STANDARD_CELL + HOME_STRAIGHT_DISTANCE,
   BHAWANA = 9,
   KOTUWA = 27,
   PITA_KOTUWA = 46,
@@ -54,7 +57,7 @@ struct Piece
   int captured;
   char name[3];
   bool clockWise;
-  bool block;
+  bool blockClockWise;
   int noOfApproachPasses;
   struct MysteryEffects effect;
 };
@@ -75,6 +78,31 @@ struct Player
   int startIndex;
   struct Piece pieces[4];
   enum Color color;
+};
+
+struct RedPriority
+{
+  bool canMoveFromBase;
+  bool canFullMove;
+  bool canPartialMove;
+  bool canAttack;
+  bool canFormBlock;
+  bool canExitBlock;
+};
+
+struct GreenPriority
+{
+
+};
+
+struct YellowPriority
+{
+
+};
+
+struct BluePriority
+{
+
 };
 
 #endif // !TYPES_H

@@ -16,18 +16,18 @@ void playGame()
 {
     struct Game game = {
         0,
-        -1,
+        EMPTY,
         0,
         0,
-        {[0 ... PLAYER_NO - 1] = -1},
-        {[0 ... PLAYER_NO - 1] = -1},
-        -1,
+        {[0 ... PLAYER_NO - 1] = EMPTY},
+        {[0 ... PLAYER_NO - 1] = EMPTY},
+        EMPTY,
 
     };
 
     struct Piece *standardCells[MAX_STANDARD_CELL][PIECE_NO] = {NULL};
 
-    struct Piece *homeStraight[PLAYER_NO][MAX_HOME_STRAIGHT / PIECE_NO] = {NULL};
+    // struct Piece *homeStraight[PLAYER_NO][MAX_HOME_STRAIGHT / PIECE_NO] = {NULL};
 
     struct Player *players = initializePlayers();
 
@@ -52,7 +52,7 @@ void playGame()
 
     initialGameLoop(players, &game);
     
-    mainGameLoop(players, &game, standardCells, homeStraight);
+    mainGameLoop(players, &game, standardCells);
 
     free(players);
 }
