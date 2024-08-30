@@ -897,6 +897,7 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
   }
 
   int enemyCount = getEnemyCountOfCell(cells[mysteryLocation], color);
+  int playerCount = getPlayerCountOfCell(cells[mysteryLocation], color);
 
   if (isBlocked(count, enemyCount))
   {
@@ -904,6 +905,16 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
       mysteryLocation,
       playerName
     );
+    return;
+  }
+
+  if (playerCount != 0)
+  {
+    printf("Mystery effect cancelled since there is already a %s pieces on L%d",
+      playerName,
+      mysteryLocation
+    );
+
     return;
   }
 
@@ -923,7 +934,9 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
     cells[pieces[0]->cellNo][cellIndex] = NULL;
   }
 
-  for (int pieceIndex = 0; pieceIndex < count; pieceIndex++)
+  struct Piece *newPieces[count];
+
+  for (int pieceIndex = 0, newCount = 0; pieceIndex < count; pieceIndex++)
   {
     // capture the pieces
     if (captured)
@@ -951,14 +964,18 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
 
         if (mysteryEffect == getMysteryEffectNumber(PITA_KOTUWA) && !prevClockWise)
         {
-          int newMysteryEffect = getMysteryEffectNumber(KOTUWA);
-          struct Piece **newPieces = {&pieces[pieceIndex]};
-
-          applyTeleportation(newPieces, newMysteryEffect, cells);
+          newPieces[newCount] = pieces[pieceIndex];
+          newCount++;
         }
         break;
       }
     }
+  }
+
+  if (newPieces != NULL)
+  {
+    int newMysteryEffect = getMysteryEffectNumber(KOTUWA);
+    applyTeleportation(newPieces, newMysteryEffect, cells);
   }
 }
 
