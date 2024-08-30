@@ -1894,6 +1894,11 @@ void validateSingleGreenMovement
       player->color
     );
 
+  if (movableCellCount == 0)
+  {
+    return;
+  }
+
   if (movableCellCount == diceNumber)
   {
     piecePriorities[pieceIndex].canFullMove = true;
@@ -1939,6 +1944,11 @@ void validateBlockGreenMovement
       cells,
       player->color
     );
+
+  if (movableCellCount == 0)
+  {
+    return;
+  }
 
   if (movableCellCount == diceNumber)
   {
