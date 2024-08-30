@@ -27,8 +27,6 @@ void playGame()
 
     struct Piece *standardCells[MAX_STANDARD_CELL][PIECE_NO] = {NULL};
 
-    // struct Piece *homeStraight[PLAYER_NO][MAX_HOME_STRAIGHT / PIECE_NO] = {NULL};
-
     struct Player *players = initializePlayers();
 
     for (int playerIndex = 0; playerIndex < PLAYER_NO; playerIndex++)
