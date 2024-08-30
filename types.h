@@ -92,7 +92,11 @@ struct RedPriority
 
 struct GreenPriority
 {
-
+  bool canMoveFromBase;
+  bool isBlockMovable;
+  bool canFullMove;
+  bool canPartialMove;
+  bool canFormBlock;
 };
 
 struct YellowPriority
