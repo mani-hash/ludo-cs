@@ -941,11 +941,14 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, int count, str
     {
       if (cells[mysteryLocation][cellIndex] == NULL)
       {
+        // get direction of piece before applying mystery effect
+        bool prevClockWise = pieces[pieceIndex]->clockWise;
+
         cells[mysteryLocation][cellIndex] = pieces[pieceIndex];
         displayTeleportationMessage(playerName, count, pieces[pieceIndex], mysteryLocationName);
         applyMysteryEffect(mysteryEffect, mysteryLocation, pieces[pieceIndex], playerName, pieces[pieceIndex]->name);
 
-        if (mysteryEffect == getMysteryEffectNumber(PITA_KOTUWA) && !pieces[pieceIndex]->clockWise)
+        if (mysteryEffect == getMysteryEffectNumber(PITA_KOTUWA) && !prevClockWise)
         {
           int newMysteryEffect = getMysteryEffectNumber(KOTUWA);
           struct Piece **newPieces = {&pieces[pieceIndex]};
