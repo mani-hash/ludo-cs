@@ -2279,6 +2279,8 @@ void displayTeleportationMessage(char* playerName, int count, struct Piece **pie
   printf("teleported to %s\n", location);
 }
 
+
+// fix this
 void displayMovablePieceStatus
 (
   int movableCellCount, int diceNumber, char *playerName,struct Piece *piece,
@@ -2287,6 +2289,7 @@ void displayMovablePieceStatus
 {
   if (movableCellCount == 0)
   {
+    int enemyCount = getEnemyCountOfCell(cell, getPieceColor(piece->name[0]));
     printf("%s piece %s is blocked from L%d to L%d by %s piece\n",
       playerName,
       piece->name,
@@ -2319,6 +2322,8 @@ void displayMovablePieceStatus
   }
 }
 
+
+// fix this
 void displayMovableBlockStatus(
   int movableCellCount, int diceNumber,
   char *playerName, struct Piece *piece,
@@ -2414,11 +2419,31 @@ void handleMysteryCellLoop(struct Game *game, struct Player *players, struct Pie
 
 void mainGameLoop(struct Player *players, struct Game *game, struct Piece *standardCells[][PLAYER_NO])
 {
-  // test counter
-  int test = 0;
+  // limit counter
+  // Define the max limit of the game loop
+  // if loop exceeds stop the game
+  // NOTE: prevents infinite loop in worst cases
+  int limit = 0;
+  int maxLimit = 10000;
 
   while (true)
   {
+    // stop game loop after 3 players have reached HOME
+    if (game->winIndex == PLAYER_NO - 1)
+    {
+      // find the 4th place player
+      for (int playerIndex = 0; playerIndex < PLAYER_NO; playerIndex++)
+      {
+        if (!hasPlayerWon(players[playerIndex].pieces))
+        {
+          game->winners[game->winIndex] = playerIndex;
+          break;
+        }
+      }
+      printf("Game has ended successfully!\n");
+      break;
+    }
+
     game->rounds += 1;
     printf("=============== Round %d ==============\n\n", game->rounds);
 
@@ -2427,6 +2452,13 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
     for (int orderIndex = 0; orderIndex < PLAYER_NO; orderIndex++)
     {
       int playerIndex = game->order[orderIndex];
+
+      // skip player if all pieces of players are at home
+      if (skipPlayerIfWon(game->winners, game->winIndex, playerIndex))
+      {
+        continue;
+      }
+
       int diceNumber = rollDice();
       int noOfPiecesInBase = getNoOfPiecesInBase(&players[playerIndex]);
 
@@ -2445,6 +2477,19 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
 
         // handle piece landing on mystery cell
         handlePieceLandOnMysteryCell(game, &players[playerIndex], standardCells);
+
+        if (hasPlayerWon(players[playerIndex].pieces))
+        {
+          char *playerName = getName(players[playerIndex].color);
+          game->winners[game->winIndex] = playerIndex;
+          game->winIndex++;
+
+          printf("All pieces of %s has reached home\n", playerName);
+          printf("Rank of %s player is %d\n\n", playerName, game->winIndex);
+
+          printf("Continuing the game for other players...\n");
+          break;
+        }
 
         int newCaptureCount = getCaptureCountOfPlayer(&players[playerIndex]);
 
@@ -2468,22 +2513,6 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
       decrementMysteryEffectRounds(players[playerIndex].pieces);
       resetMysteryEffect(players[playerIndex].pieces);
 
-      // basic win condition (modify later)
-      int win = 0;
-      for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-      {
-        if (players[playerIndex].pieces[pieceIndex].cellNo == HOME)
-        {
-          win++;
-        }
-      }
-
-      if (win == 4)
-      {
-        printf("===== %s player won the game =====\n", getName(players[playerIndex].color));
-        return;
-      }
-
       // separate block when 6 is consecutively thrown
       // fix and improve later
       if (minConsecutive >= 3 && diceNumber == MAX_DICE_VALUE && playerHasBlock(&players[playerIndex]))
@@ -2500,13 +2529,74 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
     displayMysteryCellStatusAfterRound(game->mysteryCellNo, game->mysteryRounds);
     
     printf("\n");
-    // test incremental counter
-    test++;
 
-    //test loop stop
-    if (test >= 10000)
+
+    limit++;
+
+    //limit loop stop
+    if (limit >= maxLimit)
     {
+      displayWinners(game, players);
       break;
     }
   }
+
+  displayWinners(game, players);
+}
+
+/* Win condition methods
+  */
+bool hasPlayerWon(struct Piece *pieces)
+{
+  int piecesInHome = 0;
+
+  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
+  {
+    if (pieces[pieceIndex].cellNo == HOME)
+    {
+      piecesInHome++;
+    }
+  }
+
+  if (piecesInHome == 4)
+  {
+    return true;
+  }
+  return false;
+}
+
+bool skipPlayerIfWon(int *winners, int curWinIndex, int playerIndex)
+{
+  for (int winnerIndex = 0; winnerIndex < curWinIndex; winnerIndex++)
+  {
+    if (winners[winnerIndex] == playerIndex)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void displayWinners(struct Game *game, struct Player *players)
+{
+  printf("=============================================\n");
+  printf("Rounds completed => %d\n", game->rounds);
+
+  if (game->winners[0] != EMPTY)
+  {
+    printf("Winner of the match is %s\n", getName(players[game->winners[0]].color));
+  }
+  else
+  {
+    printf("No players have won the game. Game stopped due to unavoidable reasons\n");
+    return;
+  }
+
+  printf("============= Rank of players ===============\n");
+  printf("1st place => %s\n", game->winners[0] != EMPTY ? getName(players[game->winners[0]].color) : "Error");
+  printf("2nd place => %s\n", game->winners[1] != EMPTY ? getName(players[game->winners[1]].color) : "Error");
+  printf("3rd place => %s\n", game->winners[2] != EMPTY ? getName(players[game->winners[2]].color) : "Error");
+  printf("4th place => %s\n", game->winners[3] != EMPTY ? getName(players[game->winners[3]].color) : "Error");
+
 }

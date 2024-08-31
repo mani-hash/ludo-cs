@@ -87,6 +87,7 @@ bool handleCellToHomeStraight(struct Piece *piece, int diceNumber, int movableCe
 void incrementHomeApproachPasses(struct Piece *piece, struct Piece *cells[][PIECE_NO], int finalCellNo);
 
 // Behavior functions
+union PiecePriority getPriorities(enum Color color);
 void moveParse(struct Player *players, int playerIndex, int diceNumber, struct Piece *cells[][PIECE_NO], int curMyseryCell);
 bool initialMovementCheck
 (
@@ -187,5 +188,10 @@ void displayMovableBlockStatus(
 void initialGameLoop(struct Player *players, struct Game *game);
 void handleMysteryCellLoop(struct Game *game, struct Player *players, struct Piece *cells[][PIECE_NO]);
 void mainGameLoop(struct Player *players, struct Game *game, struct Piece *standardCells[][PLAYER_NO]);
+
+// check win conditions
+bool hasPlayerWon(struct Piece *pieces);
+bool skipPlayerIfWon(int *winners, int curWinIndex, int playerIndex);
+void displayWinners(struct Game *game, struct Player *players);
 
 #endif // !GAME
