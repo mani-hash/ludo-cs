@@ -890,6 +890,11 @@ void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *pi
         piece->effect.pieceActive = false;
         piece->effect.effectActiveRounds = 4; 
       }
+
+      if (piece->blockClockWise)
+      {
+        piece->blockClockWise = false;
+      }
       break;
   }
 
@@ -914,10 +919,10 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
     
     for (int pieceIndex = 0; pieceIndex < count; pieceIndex++)
     {
-      displayTeleportationMessage(playerName, count, pieces[pieceIndex], mysteryLocationName);
       pieces[pieceIndex]->cellNo = BASE;
       resetPiece(pieces[pieceIndex]);
     }
+    displayTeleportationMessage(playerName, count, pieces, mysteryLocationName);
     return;
   }
 
@@ -961,21 +966,29 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
 
   struct Piece *newPieces[count];
 
-  for (int pieceIndex = 0, newCount = 0; pieceIndex < count; pieceIndex++)
+  for (int newPieceIndex = 0; newPieceIndex < count; newPieceIndex++)
   {
-    // capture the pieces
-    if (captured)
-    {
-      if (isBlockade(cells[pieces[pieceIndex]->cellNo]))
-      {
-        captureByBlock(pieces, count, cells, mysteryLocation, playerName);
-      }
-      else
-      {
-        captureByPiece(pieces[0], cells, mysteryLocation, playerName);
-      }
-    }
+    newPieces[newPieceIndex] = NULL;
+  }
+  int newCount = 0;
 
+  // capture the pieces
+  if (captured)
+  {
+    if (isBlockade(cells[pieces[0]->cellNo]))
+    {
+      captureByBlock(pieces, count, cells, mysteryLocation, playerName);
+    }
+    else
+    {
+      captureByPiece(pieces[0], cells, mysteryLocation, playerName);
+    }
+  }
+
+  displayTeleportationMessage(playerName, count, pieces, mysteryLocationName);
+
+  for (int pieceIndex = 0; pieceIndex < count; pieceIndex++)
+  {
     for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
     {
       if (cells[mysteryLocation][cellIndex] == NULL)
@@ -983,12 +996,17 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
         // get direction of piece before applying mystery effect
         bool prevClockWise = pieces[pieceIndex]->clockWise;
 
+        if (count > 1)
+        {
+          prevClockWise = pieces[pieceIndex]->blockClockWise;
+        }
+
         cells[mysteryLocation][cellIndex] = pieces[pieceIndex];
-        displayTeleportationMessage(playerName, count, pieces[pieceIndex], mysteryLocationName);
         applyMysteryEffect(mysteryEffect, mysteryLocation, pieces[pieceIndex], playerName, pieces[pieceIndex]->name);
 
         if (mysteryEffect == getMysteryEffectNumber(PITA_KOTUWA) && !prevClockWise)
         {
+          // printf("new")
           newPieces[newCount] = pieces[pieceIndex];
           newCount++;
         }
@@ -997,7 +1015,7 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
     }
   }
 
-  if (newPieces != NULL)
+  if (newCount > 0)
   {
     int newMysteryEffect = getMysteryEffectNumber(KOTUWA);
     applyTeleportation(newPieces, newMysteryEffect, cells);
@@ -1407,7 +1425,8 @@ void handlePieceLandOnMysteryCell(struct Game *game, struct Player *player, stru
 
   if (pieces != NULL)
   {
-    int mysteryEffect = getMysteryEffect();
+    // int mysteryEffect = getMysteryEffect();
+    int mysteryEffect = 3;
     applyTeleportation(pieces, mysteryEffect, cells);
   }
 }
@@ -2742,12 +2761,12 @@ void displayMysteryCellStatusAfterRound(int mysteryCellNo, int mysteryRounds)
   }
 }
 
-void displayTeleportationMessage(char* playerName, int count, struct Piece *pieces, char *location)
+void displayTeleportationMessage(char* playerName, int count, struct Piece **pieces, char *location)
 {
   printf("%s piece ", playerName);
   for (int pieceIndex = 0; pieceIndex < count; pieceIndex++)
   {
-    printf("%s ", pieces[pieceIndex].name);
+    printf("%s ", pieces[pieceIndex]->name);
   }
   printf("teleported to %s\n", location);
 }
@@ -2938,7 +2957,7 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
         minConsecutive++;
 
         // handle piece landing on mystery cell
-        // handlePieceLandOnMysteryCell(game, &players[playerIndex], standardCells);
+        handlePieceLandOnMysteryCell(game, &players[playerIndex], standardCells);
 
         int newCaptureCount = getCaptureCountOfPlayer(&players[playerIndex]);
 
