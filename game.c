@@ -1425,8 +1425,7 @@ void handlePieceLandOnMysteryCell(struct Game *game, struct Player *player, stru
 
   if (pieces != NULL)
   {
-    // int mysteryEffect = getMysteryEffect();
-    int mysteryEffect = 3;
+    int mysteryEffect = getMysteryEffect();
     applyTeleportation(pieces, mysteryEffect, cells);
   }
 }
@@ -2961,7 +2960,7 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
 
         int newCaptureCount = getCaptureCountOfPlayer(&players[playerIndex]);
 
-        if (diceNumber != MAX_DICE_VALUE && newCaptureCount <= captureCount)
+        if ((diceNumber != MAX_DICE_VALUE || minConsecutive == 3 && diceNumber == MAX_DICE_VALUE) && newCaptureCount <= captureCount)
         {
           break;
         }
@@ -2999,10 +2998,13 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
 
       // separate block when 6 is consecutively thrown
       // fix and improve later
-      if (minConsecutive >= 3 && playerHasBlock(&players[playerIndex]))
+      if (minConsecutive >= 3 && diceNumber == MAX_DICE_VALUE && playerHasBlock(&players[playerIndex]))
       {
         int blockCellNo = getCellNoOfRandomBlock(&players[playerIndex], standardCells);
-        separateBlockade(standardCells, blockCellNo);
+        if (blockCellNo != EMPTY)
+        {
+          separateBlockade(standardCells, blockCellNo);
+        }
       }
     } 
 
