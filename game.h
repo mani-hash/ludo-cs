@@ -282,7 +282,7 @@ void finalizeBlueMovement
 // Output functions
 void displayPlayerStatusAfterRound(struct Player *players, struct Game *game);
 void displayMysteryCellStatusAfterRound(int mysteryCellNo, int mysteryRounds);
-void displayTeleportationMessage(char* playerName, int count, struct Piece *pieces, char *location);
+void displayTeleportationMessage(char* playerName, int count, struct Piece **pieces, char *location);
 void displayMovablePieceStatus
 (
   int movableCellCount,
