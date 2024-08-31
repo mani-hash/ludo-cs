@@ -355,6 +355,12 @@ bool isBlocked(int playerPieceCount, int enemyPieceCount)
   {
     return true;
   }
+
+  if (enemyPieceCount < playerPieceCount && enemyPieceCount > 1)
+  {
+    return true;
+  }
+
   return false;
 }
 
@@ -605,6 +611,25 @@ int getDistanceFromHome(struct Piece *piece)
 
   distanceFromHome += HOME_STRAIGHT_DISTANCE;
   return distanceFromHome;
+}
+
+bool playerHasBlock(struct Player *player)
+{
+  int cellNo = EMPTY;
+  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
+  {
+    if (player->pieces[pieceIndex].cellNo == BASE || player->pieces[pieceIndex].cellNo >= MAX_STANDARD_CELL)
+    {
+      continue;
+    }
+
+    if (cellNo == player->pieces[pieceIndex].cellNo)
+    {
+      return true;
+    }
+    cellNo = player->pieces[pieceIndex].cellNo;
+  }
+  return false;
 }
 
 int getCellNoOfRandomBlock(struct Player *player, struct Piece *cells[][PIECE_NO])
@@ -2954,11 +2979,12 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
       }
 
       // separate block when 6 is consecutively thrown
-      // if (minConsecutive >= 3 && playerHasBlock(&players[playerIndex]))
-      // {
-      //   int blockCellNo = getCellNoOfRandomBlock(&players[playerIndex]);
-      //   separateBlockade(standardCells, blockCellNo);
-      // }
+      // fix and improve later
+      if (minConsecutive >= 3 && playerHasBlock(&players[playerIndex]))
+      {
+        int blockCellNo = getCellNoOfRandomBlock(&players[playerIndex], standardCells);
+        separateBlockade(standardCells, blockCellNo);
+      }
     } 
 
     displayPlayerStatusAfterRound(players, game);
