@@ -1184,16 +1184,19 @@ void move(struct Piece *piece, int prevIndex, int diceNumber, struct Piece *cell
   bool formBlockStatus = false; 
   int directionConstant = piece->clockWise ? 1 : -1;
   int finalCellNo = getCorrectCellCount(piece->cellNo + (diceNumber * directionConstant));
+  int targetFinalCellNo = finalCellNo;
 
   // Exit if movable cell count is 0
   if (movableCellCount == 0)
   {
-    displayMovablePieceStatus(movableCellCount, diceNumber, playerName, piece, finalCellNo, cells[finalCellNo]);
+    targetFinalCellNo = getCorrectCellCount(piece->cellNo + (1 * directionConstant));
+    displayMovablePieceStatus(movableCellCount, diceNumber, playerName, piece, finalCellNo, cells[targetFinalCellNo]);
     return;
   }
   else if (movableCellCount < diceNumber)
   {
     finalCellNo = getCorrectCellCount(piece->cellNo + (movableCellCount * directionConstant));
+    targetFinalCellNo = getCorrectCellCount(piece->cellNo + ((movableCellCount+1) * directionConstant));
   }
 
   // Must NULL this index to avoid cell duplication
@@ -1205,7 +1208,7 @@ void move(struct Piece *piece, int prevIndex, int diceNumber, struct Piece *cell
     return;
   }
 
-  displayMovablePieceStatus(movableCellCount, diceNumber, playerName, piece, finalCellNo, cells[finalCellNo]);
+  displayMovablePieceStatus(movableCellCount, diceNumber, playerName, piece, finalCellNo, cells[targetFinalCellNo]);
 
   incrementHomeApproachPasses(piece, cells, finalCellNo);
 
@@ -1271,16 +1274,19 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
   bool formBlockStatus = false;
   int directionConstant = piece->blockClockWise ? 1 : -1;
   int finalCellNo = getCorrectCellCount(piece->cellNo + (blockDiceNumber * directionConstant));
+  int targetFinalCellNo = finalCellNo;
 
   // exit if movable cell count is 0
   if (movableCellCount == 0)
   {
-    displayMovableBlockStatus(movableCellCount, blockDiceNumber, playerName, piece, finalCellNo, cells[finalCellNo]);
+    targetFinalCellNo = getCorrectCellCount(piece->cellNo + (1 * directionConstant));
+    displayMovableBlockStatus(movableCellCount, blockDiceNumber, playerName, piece, finalCellNo, cells[targetFinalCellNo]);
     return;
   }
   else if (movableCellCount < 0)
   {
     finalCellNo = getCorrectCellCount(piece->cellNo + (movableCellCount * directionConstant));
+    targetFinalCellNo = getCorrectCellCount(piece->cellNo + ((movableCellCount + 1) * directionConstant));
   }
 
   for (int blockIndex = 0; blockIndex < playerCount; blockIndex++)
@@ -1313,7 +1319,7 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
     cells[piece->cellNo][cellIndex] = NULL;
   }
 
-  displayMovableBlockStatus(movableCellCount, blockDiceNumber, playerName, piece, finalCellNo, cells[finalCellNo]);
+  displayMovableBlockStatus(movableCellCount, blockDiceNumber, playerName, piece, finalCellNo, cells[targetFinalCellNo]);
 
   if (!isCellEmpty(cells[finalCellNo]))
   {
@@ -2241,7 +2247,7 @@ void displayPlayerStatusAfterRound(struct Player *players, struct Game *game)
           printf("Piece %s -> Base\n", piece.name);
           break;
         case MAX_STANDARD_CELL...HOME-1:
-          printf("Piece %s -> %s homepath %d\n", playerName, piece.name, piece.cellNo - MAX_STANDARD_CELL);
+          printf("Piece %s -> %s homepath %d\n", piece.name, playerName, piece.cellNo - MAX_STANDARD_CELL);
           break;
         case HOME:
           printf("Piece %s -> Home\n", piece.name);
@@ -2287,27 +2293,37 @@ void displayMovablePieceStatus
   int finalCellNo, struct Piece *cell[PIECE_NO]
 )
 {
-  if (movableCellCount == 0)
+  if (movableCellCount < diceNumber)
   {
     int enemyCount = getEnemyCountOfCell(cell, getPieceColor(piece->name[0]));
-    printf("%s piece %s is blocked from L%d to L%d by %s piece\n",
+
+    if (enemyCount != 0)
+    {
+      printf("%s piece %s is blocked from L%d to L%d by %s piece\n",
+        playerName,
+        piece->name,
+        piece->cellNo,
+        finalCellNo,
+        getName(getPlayerColorInCell(cell))
+      );
+    }
+
+    printf("%s does not have other pieces to move instead of %s piece.",
       playerName,
-      piece->name,
-      piece->cellNo,
-      finalCellNo,
-      getName(getPlayerColorInCell(cell))
+      enemyCount != 0 ? "blocked" : "immobile"
     );
 
-    printf("%s does not have other pieces to move instead of blocked piece. ", playerName);
-    printf("Ignoring the throw and moving to the next player\n");
-  }
-  else if (movableCellCount < diceNumber)
-  {
-    printf("%s does not have other pieces to move instead of blocked piece. Moved the piece %s to square L%d which is a cell before the block\n",
-      playerName,
-      piece->name,
-      finalCellNo
-    );
+    if (movableCellCount == 0)
+    {
+      printf("Ignoring the throw and moving to the next player\n");
+    }
+    else
+    {
+      printf("Moved the piece %s to square L%d which is a cell before the block\n",
+        piece->name,
+        finalCellNo
+      );
+    }
   }
   else
   {
@@ -2330,23 +2346,34 @@ void displayMovableBlockStatus(
   int finalCellNo, struct Piece *cell[PIECE_NO]
 )
 {
-  if (movableCellCount == 0)
+  if (movableCellCount < diceNumber)
   {
-    printf("Block of %s has been blocked by %s block from moving from L%d to L%d\n",
-      playerName,
-      getName(getPlayerColorInCell(cell)),
-      piece->cellNo,
-      finalCellNo
-    );
-    printf("%s does not have other pieces to move instead of blocked piece. ", playerName);
-    printf("Ignoring the throw and moving to the next player\n");
-  }
-  else if (movableCellCount < diceNumber)
-  {
-    printf("%s does not have other pieces to move instead of blocked piece. Moved the block pieces to square L%d which is a cell before the block\n",
-      playerName,
-      finalCellNo
-    );
+    int enemyCount = getEnemyCountOfCell(cell, getPieceColor(piece->name[0]));
+
+    if (enemyCount != 0)
+    {
+      printf("Block of %s has been blocked by %s block from moving from L%d to L%d\n",
+        playerName,
+        getName(getPlayerColorInCell(cell)),
+        piece->cellNo,
+        finalCellNo
+      );
+      printf("%s does not have other pieces to move instead of %s piece. ", 
+        enemyCount != 0 ? "blocked" : "immobile",
+        playerName
+      );
+    }
+
+    if (movableCellCount == 0)
+    { 
+      printf("Ignoring the throw and moving to the next player\n");
+    }
+    else
+    {
+      printf("Moved the block pieces to square L%d which is a cell before the block\n",
+        finalCellNo
+      );
+    }
   }
   else
   {
@@ -2536,6 +2563,7 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
     //limit loop stop
     if (limit >= maxLimit)
     {
+
       displayWinners(game, players);
       break;
     }
