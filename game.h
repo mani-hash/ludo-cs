@@ -87,6 +87,50 @@ bool handleCellToHomeStraight(struct Piece *piece, int diceNumber, int movableCe
 void incrementHomeApproachPasses(struct Piece *piece, struct Piece *cells[][PIECE_NO], int finalCellNo);
 
 // Behavior functions
+void moveParse(struct Player *players, int playerIndex, int diceNumber, struct Piece *cells[][PIECE_NO], int curMyseryCell);
+bool initialMovementCheck
+(
+  struct Player *player,
+  union PiecePriority *piecePriorities,
+  struct Piece *cells[][PIECE_NO],
+  int pieceIndex,
+  int diceNumber 
+);
+void validateSingleMovement
+(
+  struct Player *player,
+  union PiecePriority *piecePriorities,
+  struct Piece *cells[][PIECE_NO],
+  int pieceIndex,
+  int diceNumber,
+  int curMysteryCell
+);
+void validateBlockMovement
+(
+  struct Player *player,
+  union PiecePriority *piecePriorities,
+  struct Piece *cells[][PIECE_NO],
+  int pieceIndex,
+  int diceNumber,
+  int curMysteryCell
+);
+int getIndexOfSelectedPiece
+(
+  struct Piece *pieces,
+  struct Piece *cells[][PIECE_NO],
+  int *pieceImportance,
+  int canAttackCount,
+  int diceNumber
+);
+void finalizeMovement
+(
+  struct Player *player,
+  int selectedPieceIndex, 
+  int diceNumber, 
+  struct Piece *cells[][PIECE_NO], 
+  bool blockMoveCondition
+);
+
 void redMoveParse(struct Player *player, int redPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
 bool initialRedMovementCheck
 (
