@@ -19,6 +19,7 @@ void playGame()
         EMPTY,
         0,
         0,
+        0,
         {[0 ... PLAYER_NO - 1] = EMPTY},
         {[0 ... PLAYER_NO - 1] = EMPTY},
         EMPTY,

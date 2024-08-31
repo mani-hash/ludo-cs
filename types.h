@@ -69,8 +69,9 @@ struct Game
   int mysteryCellNo;
   int mysteryRounds;
   int roundsTillMysteryCell;
+  int winIndex;
   int order[PLAYER_NO];
-  int win[PLAYER_NO];
+  int winners[PLAYER_NO];
   int prevMysteryCell;
 };
 
