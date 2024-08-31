@@ -117,4 +117,12 @@ struct BluePriority
   bool canExitBlock;
 };
 
+union PiecePriority
+{
+  struct RedPriority *redPriority;
+  struct GreenPriority *greenPriority;
+  struct YellowPriority *yellowPriority;
+  struct BluePriority *bluePriority;
+};
+
 #endif // !TYPES_H
