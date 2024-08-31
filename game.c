@@ -1083,11 +1083,6 @@ void resetMysteryEffect(struct Piece *pieces)
   }
 }
 
-void playRound()
-{
-
-}
-
 void captureByPiece(struct Piece *piece, struct Piece *cells[][PIECE_NO], int finalCellNo, char *playerName)
 {
   piece->captured+=1;
@@ -1174,15 +1169,6 @@ void separateBlockade(struct Piece *cells[][PIECE_NO], int blockCellNo)
   {
     if (cells[blockCellNo][cellIndex] != NULL)
     {
-      // int movableCount = getMovableCellCount(
-      //   cells[blockCellNo][cellIndex]->cellNo,
-      //   distanceForOneCell,
-      //   cells[blockCellNo][cellIndex]->clockWise,
-      //   1,
-      //   cells,
-      //   color
-      // );
-
       move(cells[blockCellNo][cellIndex], cellIndex, distanceForOneCell, cells);
     }
   }
@@ -1193,13 +1179,6 @@ void move(struct Piece *piece, int prevIndex, int diceNumber, struct Piece *cell
   enum Color color = getPieceColor(piece->name[0]);
   char *playerName = getName(color);
 
-  // // if piece is in home straight
-  // if (piece->cellNo >= MAX_STANDARD_CELL)
-  // {
-  //   moveInHomeStraight(piece, diceNumber);
-  //   return;
-  // }
-  
   int movableCellCount = getMovableCellCount(piece->cellNo, diceNumber, piece->clockWise, 1, cells, color);
 
   bool formBlockStatus = false; 
@@ -1556,12 +1535,6 @@ union PiecePriority getPriorities(enum Color color)
       break;
   }
 
-  // if (piecePriorities == NULL)
-  // {
-  //   displayErrors();
-  //   exit(0);
-  // }
-
   return piecePriorities;
 }
 
@@ -1666,11 +1639,8 @@ void moveParse(struct Player *players, int playerIndex, int diceNumber, struct P
 
 bool initialMovementCheck
 (
-  struct Player *player,
-  union PiecePriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber 
+  struct Player *player, union PiecePriority *piecePriorities,
+  struct Piece *cells[][PIECE_NO], int pieceIndex, int diceNumber 
 )
 {
   int cellNo = player->pieces[pieceIndex].cellNo;
@@ -1751,12 +1721,8 @@ bool initialMovementCheck
 
 void validateSingleMovement
 (
-  struct Player *player,
-  union PiecePriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber,
-  int curMysteryCell
+  struct Player *player, union PiecePriority *piecePriorities, struct Piece *cells[][PIECE_NO],
+  int pieceIndex, int diceNumber, int curMysteryCell
 )
 {
   int cellNo = player->pieces[pieceIndex].cellNo;
@@ -1882,12 +1848,8 @@ void validateSingleMovement
 
 void validateBlockMovement
 (
-  struct Player *player,
-  union PiecePriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber,
-  int curMysteryCell
+  struct Player *player, union PiecePriority *piecePriorities, struct Piece *cells[][PIECE_NO],
+  int pieceIndex, int diceNumber, int curMysteryCell
 )
 {
   int cellNo = player->pieces[pieceIndex].cellNo;
@@ -2019,11 +1981,8 @@ void validateBlockMovement
 
 int getIndexOfSelectedPiece
 (
-  struct Piece *pieces,
-  struct Piece *cells[][PIECE_NO],
-  int *pieceImportance,
-  int canAttackCount,
-  int diceNumber
+  struct Piece *pieces, struct Piece *cells[][PIECE_NO],
+  int *pieceImportance, int canAttackCount, int diceNumber
 )
 {
   int selectedPieceIndex = 0;
@@ -2065,10 +2024,8 @@ int getIndexOfSelectedPiece
 
 void finalizeMovement
 (
-  struct Player *player,
-  int selectedPieceIndex, 
-  int diceNumber, 
-  struct Piece *cells[][PIECE_NO], 
+  struct Player *player, int selectedPieceIndex, 
+  int diceNumber, struct Piece *cells[][PIECE_NO], 
   bool blockMoveCondition
 )
 {
@@ -2106,213 +2063,11 @@ void finalizeMovement
   }
 }
 
-void redMoveParse(struct Player *players, int redPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO])
-{
-  struct Player *player = &players[redPlayerIndex];
-
-  struct RedPriority piecePriorities[PIECE_NO] = 
-  {
-    [0 ... PIECE_NO - 1] = { false, false, false, false, false, false }
-  };
-
-  // do complete movement validation for each pieces
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    // check mystery effects
-    diceNumber = getDiceValueAfterMysteryEffect(diceNumber, player, pieceIndex);
-    if (!initialRedMovementCheck(player, piecePriorities, cells, pieceIndex, diceNumber))
-    {
-      continue;
-    }
-
-    validateSingleRedMovement(player, piecePriorities, cells, pieceIndex, diceNumber);
-
-    int playerCount = getPlayerCountOfCell(cells[player->pieces[pieceIndex].cellNo], player->color);
-    bool isPartOfBlockade = isBlockade(cells[player->pieces[pieceIndex].cellNo]);
-
-    // perform block movement check if possible
-    if (isPartOfBlockade)
-    {
-      validateBlockRedMovement(player, piecePriorities, cells, pieceIndex, diceNumber);
-    }
-  }
-
-  // variables to track piece importance
-  int pieceImportance[] = { 0, 0, 0, 0 };
-  int canAttackCount = 0;
-
-  // assign piece validation importance
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    bool isPartOfBlockade = isBlockade(cells[player->pieces[pieceIndex].cellNo]);
-    validateRedPieceImportance(piecePriorities, pieceImportance, pieceIndex, &canAttackCount, isPartOfBlockade);
-  }
-
-  int selectedPieceIndex = getIndexOfSelectedRedPiece(player->pieces, cells, pieceImportance, canAttackCount, diceNumber);
-
-  finalizeRedMovement(player, selectedPieceIndex, diceNumber, cells, piecePriorities[selectedPieceIndex].canExitBlock);
-}
-
-bool initialRedMovementCheck
-(
-  struct Player *player,
-  struct RedPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber 
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-  int directionConstant = (player->pieces[pieceIndex].clockWise) ? 1 : -1;
-
-  // if piece is already at home, no movement can be applied!
-  if (diceNumber == 0)
-  {
-    return false;
-  }
-
-  if (cellNo >= MAX_STANDARD_CELL)
-  {
-    if (cellNo < HOME && canMoveInHomeStraight(cellNo, diceNumber))
-    {
-      piecePriorities[pieceIndex].canFullMove = true;
-    }
-    return false;
-  }
-
-  if (cellNo == BASE)
-  {
-    if (!isBlocked(1, getEnemyCountOfCell(cells[getStartIndex(player->color)], player->color)) && canMoveToBoard(diceNumber))
-    {
-      piecePriorities[pieceIndex].canMoveFromBase = true;
-      if (getEnemyCountOfCell(cells[getStartIndex(player->color)], player->color) != 0)
-      {
-        piecePriorities[pieceIndex].canAttack = true;
-      }
-
-    }
-    return false;
-  }
-
-  return true;
-}
-
-void validateSingleRedMovement
-(
-  struct Player *player,
-  struct RedPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-  int playerCount = 1;
-
-  int movableCellCount = 
-    getMovableCellCount
-    (
-      cellNo,
-      diceNumber, 
-      player->pieces[pieceIndex].clockWise,
-      playerCount,
-      cells,
-      player->color
-    );
-
-  if (movableCellCount == 0)
-  {
-    return;
-  }
-
-  if (movableCellCount == diceNumber)
-  {
-    piecePriorities[pieceIndex].canFullMove = true;
-  }
-  else if (movableCellCount != 0)
-  {
-    piecePriorities[pieceIndex].canPartialMove = true;
-  }
-
-  int directionConstant = (player->pieces[pieceIndex].clockWise) ? 1 : -1;
-  int finalCellNo = getCorrectCellCount(cellNo + (directionConstant * movableCellCount));
-  int enemyCount = getEnemyCountOfCell(cells[finalCellNo], player->color);
-  if (enemyCount != 0 && !isBlocked(playerCount, enemyCount))
-  {
-    piecePriorities[pieceIndex].canAttack = true;
-  }
-
-  if (!isCellEmpty(cells[finalCellNo]) && getPlayerCountOfCell(cells[finalCellNo], player->color) != 0)
-  {
-    piecePriorities[pieceIndex].canFormBlock = true;
-  }
-}
-
-void validateBlockRedMovement(
-  struct Player *player,
-  struct RedPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-  int playerCount = getPlayerCountOfCell(cells[cellNo], player->color);
-  diceNumber /= playerCount;
-
-  if (diceNumber == 0)
-  {
-    return;
-  }
-
-  int movableCellCount =
-    getMovableCellCount(
-      cellNo,
-      diceNumber,
-      player->pieces[pieceIndex].clockWise,
-      playerCount,
-      cells,
-      player->color
-    );
-  
-  if (movableCellCount == 0)
-  {
-    return;
-  }
-
-  if (movableCellCount == diceNumber)
-  {
-    piecePriorities[pieceIndex].canFullMove = true;
-  }
-  else if (movableCellCount != 0)
-  {
-    piecePriorities[pieceIndex].canPartialMove = true;
-  }
-
-  if (piecePriorities[pieceIndex].canFullMove || piecePriorities[pieceIndex].canPartialMove)
-  {
-    piecePriorities[pieceIndex].canExitBlock = true;
-  }
-
-  if (!piecePriorities[pieceIndex].canExitBlock)
-  {
-    int directionConstant = (player->pieces[pieceIndex].blockClockWise) ? 1 : -1;
-    int finalCellNo = getCorrectCellCount(cellNo + (directionConstant * movableCellCount));
-    int enemyCount = getEnemyCountOfCell(cells[finalCellNo], player->color);
-    
-    if (enemyCount != 0 && !isBlocked(playerCount, enemyCount))
-    {
-      piecePriorities[pieceIndex].canAttack = true;
-    }
-  }
-}
 
 void validateRedPieceImportance(
-  struct RedPriority *piecePriorities,
-  int *pieceImportance,
-  int pieceIndex,
-  int *canAttackCount,
-  bool isPartOfBlockade
+  struct RedPriority *piecePriorities, 
+  int *pieceImportance, int pieceIndex,
+  int *canAttackCount, bool isPartOfBlockade
 )
 {
   int maxPriority = MAX_PRIORITY;
@@ -2355,268 +2110,10 @@ void validateRedPieceImportance(
   }
 }
 
-int getIndexOfSelectedRedPiece
-(
-  struct Piece *pieces,
-  struct Piece *cells[][PIECE_NO],
-  int *pieceImportance,
-  int canAttackCount,
-  int diceNumber
-)
-{
-  int selectedPieceIndex = 0;
-  int maxPriority = EMPTY;
-  int prevEnemyDistanceFromHome = MAX_STANDARD_CELL;
-
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    if (pieceImportance[pieceIndex] > maxPriority)
-    {
-      maxPriority = pieceImportance[pieceIndex];
-      selectedPieceIndex = pieceIndex;
-    }
-
-    // Selects the opponent player close to their home if there are multiple
-    // attack options
-    if (pieceImportance[pieceIndex] == MAX_PRIORITY && canAttackCount != 0)
-    {
-      int destinationIndex = pieces[pieceIndex].cellNo + diceNumber;
-      int enemyDistanceFromHome = getEnemyDistanceFromHome(cells[destinationIndex]);
-
-      if (enemyDistanceFromHome < prevEnemyDistanceFromHome)
-      {
-        selectedPieceIndex = pieceIndex;
-      }
-    }
-  }
-
-  return selectedPieceIndex;
-}
-
-void finalizeRedMovement
-(
-  struct Player *player,
-  int selectedPieceIndex, 
-  int diceNumber, 
-  struct Piece *cells[][PIECE_NO], 
-  bool canExitBlock
-)
-{
-  if (player->pieces[selectedPieceIndex].cellNo == BASE && diceNumber == MAX_DICE_VALUE)
-  {
-    moveFromBase(player, &player->pieces[selectedPieceIndex], cells[getStartIndex(player->color)]);
-  }
-  else if (player->pieces[selectedPieceIndex].cellNo != BASE && player->pieces[selectedPieceIndex].cellNo < MAX_STANDARD_CELL)
-  {
-    if (isBlockade(cells[player->pieces[selectedPieceIndex].cellNo]) && !canExitBlock)
-    {
-      moveBlock(&player->pieces[selectedPieceIndex], diceNumber, cells);
-    }
-    else
-    {
-      int cellIndexOfPiece = EMPTY;
-      for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
-      { 
-        if (cells[player->pieces[selectedPieceIndex].cellNo][cellIndex] == &player->pieces[selectedPieceIndex])
-        {
-          cellIndexOfPiece = cellIndex;
-          break;
-        }
-      }
-      move(&player->pieces[selectedPieceIndex], cellIndexOfPiece, diceNumber, cells);
-    }
-  }
-  else if (player->pieces[selectedPieceIndex].cellNo >= MAX_STANDARD_CELL)
-  {
-    moveInHomeStraight(&player->pieces[selectedPieceIndex], diceNumber);
-  }
-  else
-  {
-    printf("No moves can be made by piece %s\n", getName(player->color));
-  }
-}
-
-
-void greenMoveParse(struct Player *players, int greenPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO])
-{
-  struct Player *player = &players[greenPlayerIndex];
-
-  struct GreenPriority piecePriorities[PIECE_NO] =
-  {
-    [0 ... PIECE_NO - 1] = { false, false, false, false, false }
-  };
-
-  // do complete movement validation for each pieces
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    // check mystery effects
-    diceNumber = getDiceValueAfterMysteryEffect(diceNumber, player, pieceIndex);
-
-    if (!initialGreenMovementCheck(player, piecePriorities, cells, pieceIndex, diceNumber))
-    {
-      continue;
-    }
-
-    validateSingleGreenMovement(player, piecePriorities, cells, pieceIndex, diceNumber);
-
-    bool isPartOfBlockade = isBlockade(cells[player->pieces[pieceIndex].cellNo]);
-    if (isPartOfBlockade)
-    {
-      validateBlockGreenMovement(player, piecePriorities, cells, pieceIndex, diceNumber);
-    }
-  }
-
-  // variables to track piece importance
-  int pieceImportance[] = { 0, 0, 0, 0 };
-
-  // assign piece validation importance
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    validateGreenPieceImportance(piecePriorities, pieceImportance, pieceIndex);
-  }
-
-  int selectedPieceIndex = getIndexOfSelectedGreenPiece(player->pieces, cells, pieceImportance, diceNumber);
-
-  finalizeGreenMovement(player, selectedPieceIndex, diceNumber, cells, piecePriorities[selectedPieceIndex].isBlockMovable);
-}
-
-bool initialGreenMovementCheck
-(
-  struct Player *player,
-  struct GreenPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber 
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-
-  // if piece is already at home, no movement can be applied!
-  if (diceNumber == 0)
-  {
-    return false;
-  }
-
-  if (cellNo >= MAX_STANDARD_CELL)
-  {
-    if (cellNo < HOME && canMoveInHomeStraight(cellNo, diceNumber))
-    {
-      piecePriorities[pieceIndex].canFullMove = true;
-    }
-    return false;
-  }
-
-  if (cellNo == BASE)
-  {
-    if (!isBlocked(1, getEnemyCountOfCell(cells[getStartIndex(player->color)], player->color)) && canMoveToBoard(diceNumber))
-    {
-      piecePriorities[pieceIndex].canMoveFromBase = true;
-
-    }
-    return false;
-  }
-
-  return true;
-  
-}
-
-void validateSingleGreenMovement
-(
-  struct Player *player,
-  struct GreenPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-  int playerCount = 1;
-
-  int movableCellCount = 
-    getMovableCellCount
-    (
-      cellNo,
-      diceNumber, 
-      player->pieces[pieceIndex].clockWise,
-      playerCount,
-      cells,
-      player->color
-    );
-
-  if (movableCellCount == 0)
-  {
-    return;
-  }
-
-  if (movableCellCount == diceNumber)
-  {
-    piecePriorities[pieceIndex].canFullMove = true;
-  }
-  else if (movableCellCount != 0)
-  {
-    piecePriorities[pieceIndex].canPartialMove = true;
-  }
-  int directionConstant = (player->pieces[pieceIndex].clockWise) ? 1 : -1;
-  int finalCellNo = getCorrectCellCount(cellNo + (directionConstant * movableCellCount));
-
-  if (!isCellEmpty(cells[finalCellNo]) && getPlayerCountOfCell(cells[finalCellNo], player->color) != 0)
-  {
-    piecePriorities[pieceIndex].canFormBlock = true;
-  }
-  
-}
-
-void validateBlockGreenMovement
-(
-  struct Player *player,
-  struct GreenPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-  int playerCount = getPlayerCountOfCell(cells[cellNo], player->color);
-  diceNumber /= playerCount;
-
-  if (diceNumber == 0)
-  {
-    return;
-  }
-
-  int movableCellCount =
-    getMovableCellCount(
-      cellNo,
-      diceNumber,
-      player->pieces[pieceIndex].clockWise,
-      playerCount,
-      cells,
-      player->color
-    );
-
-  if (movableCellCount == 0)
-  {
-    return;
-  }
-
-  if (movableCellCount == diceNumber)
-  {
-    piecePriorities[pieceIndex].isBlockMovable = true;
-    piecePriorities[pieceIndex].canFullMove = true;
-  }
-  else if (movableCellCount != diceNumber)
-  {
-    piecePriorities[pieceIndex].isBlockMovable = true;
-    piecePriorities[pieceIndex].canPartialMove = true;
-  }
-
-}
 
 void validateGreenPieceImportance
 (
-  struct GreenPriority *piecePriorities,
-  int *pieceImportance,
-  int pieceIndex
+  struct GreenPriority *piecePriorities, int *pieceImportance, int pieceIndex
 )
 {
   int maxPriority = MAX_PRIORITY;
@@ -2648,270 +2145,10 @@ void validateGreenPieceImportance
   }
 }
 
-int getIndexOfSelectedGreenPiece
-(
-  struct Piece *pieces,
-  struct Piece *cells[][PIECE_NO],
-  int *pieceImportance,
-  int diceNumber
-)
-{
-  int selectedPieceIndex = 0;
-  int maxPriority = EMPTY;
-
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    if (pieceImportance[pieceIndex] > maxPriority)
-    {
-      maxPriority = pieceImportance[pieceIndex];
-      selectedPieceIndex = pieceIndex;
-    }
-  }
-
-  return selectedPieceIndex;
-}
-
-void finalizeGreenMovement
-(
-  struct Player *player,
-  int selectedPieceIndex, 
-  int diceNumber, 
-  struct Piece *cells[][PIECE_NO],
-  bool canMoveBlock
-)
-{
-  if (player->pieces[selectedPieceIndex].cellNo == BASE && diceNumber == MAX_DICE_VALUE)
-  {
-    moveFromBase(player, &player->pieces[selectedPieceIndex], cells[getStartIndex(player->color)]);
-  }
-  else if ((player->pieces[selectedPieceIndex].cellNo != BASE && player->pieces[selectedPieceIndex].cellNo < MAX_STANDARD_CELL))
-  {
-    if (isBlockade(cells[player->pieces[selectedPieceIndex].cellNo]) && canMoveBlock)
-    {
-      moveBlock(&player->pieces[selectedPieceIndex], diceNumber, cells);
-    }
-    else
-    {
-      int cellIndexOfPiece = EMPTY;
-      for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
-      { 
-        if (cells[player->pieces[selectedPieceIndex].cellNo][cellIndex] == &player->pieces[selectedPieceIndex])
-        {
-          cellIndexOfPiece = cellIndex;
-          break;
-        }
-      }
-      move(&player->pieces[selectedPieceIndex], cellIndexOfPiece, diceNumber, cells);
-    }
-  }
-  else if (player->pieces[selectedPieceIndex].cellNo >= MAX_STANDARD_CELL)
-  {
-    moveInHomeStraight(&player->pieces[selectedPieceIndex], diceNumber);
-  }
-  else
-  {
-    printf("No moves can be made by piece %s\n", getName(player->color));
-  }
-}
-
-void yellowMoveParse(struct Player *players, int yellowPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO])
-{
-  struct Player *player = &players[yellowPlayerIndex];
-
-  struct YellowPriority piecePriorities[PIECE_NO] =
-  {
-    [0 ... PIECE_NO - 1] = { false, false, false, false, false }
-  };
-
-  // do complete movement validation for each pieces
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    // check mystery effects
-    diceNumber = getDiceValueAfterMysteryEffect(diceNumber, player, pieceIndex);
-    if (!initialYellowMovementCheck(player, piecePriorities, cells, pieceIndex, diceNumber))
-    {
-      continue;
-    }
-
-    validateSingleYellowMovement(player, piecePriorities, cells, pieceIndex, diceNumber);
-
-    bool isPartOfBlockade = isBlockade(cells[player->pieces[pieceIndex].cellNo]);
-    if (isPartOfBlockade)
-    {
-      validateBlockYellowMovement(player, piecePriorities, cells, pieceIndex, diceNumber);
-    }
-  }
-
-  // variables to track piece importance
-  int pieceImportance[] = { 0, 0, 0, 0 };
-
-  // assign piece validation importance
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    validateYellowPieceImportance(piecePriorities, pieceImportance, pieceIndex);
-  }
-
-  int selectedPieceIndex = getIndexOfSelectedYellowPiece(player->pieces, cells, pieceImportance, diceNumber);
-
-  finalizeYellowMovement(player, selectedPieceIndex, diceNumber, cells, piecePriorities[selectedPieceIndex].canExitBlock); 
-}
-
-bool initialYellowMovementCheck
-(
-  struct Player *player,
-  struct YellowPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber 
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-
-  // if piece is already at home, no movement can be applied!
-  if (diceNumber == 0)
-  {
-    return false;
-  }
-
-  if (cellNo >= MAX_STANDARD_CELL)
-  {
-    if (cellNo < HOME && canMoveInHomeStraight(cellNo, diceNumber))
-    {
-      piecePriorities[pieceIndex].canFullMove = true;
-    }
-    return false;
-  }
-
-  if (cellNo == BASE)
-  {
-    if (!isBlocked(1, getEnemyCountOfCell(cells[getStartIndex(player->color)], player->color)) && canMoveToBoard(diceNumber))
-    {
-      piecePriorities[pieceIndex].canMoveFromBase = true;
-
-      if (getEnemyCountOfCell(cells[getStartIndex(player->color)], player->color) != 0)
-      {
-        piecePriorities[pieceIndex].canAttack = true;
-      }
-
-    }
-    return false;
-  }
-
-  return true;
-}
-
-void validateSingleYellowMovement
-(
-  struct Player *player,
-  struct YellowPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-  int playerCount = 1;
-
-  int movableCellCount = 
-    getMovableCellCount
-    (
-      cellNo,
-      diceNumber, 
-      player->pieces[pieceIndex].clockWise,
-      playerCount,
-      cells,
-      player->color
-    );
-
-  if (movableCellCount == 0)
-  {
-    return;
-  }
-
-  if (movableCellCount == diceNumber)
-  {
-    piecePriorities[pieceIndex].canFullMove = true;
-  }
-  else if (movableCellCount != 0)
-  {
-    piecePriorities[pieceIndex].canPartialMove = true;
-  }
-
-  int directionConstant = (player->pieces[pieceIndex].clockWise) ? 1 : -1;
-  int finalCellNo = getCorrectCellCount(cellNo + (directionConstant * movableCellCount));
-  int enemyCount = getEnemyCountOfCell(cells[finalCellNo], player->color);
-  if (enemyCount != 0 && !isBlocked(playerCount, enemyCount))
-  {
-    piecePriorities[pieceIndex].canAttack = true;
-  }
-}
-
-void validateBlockYellowMovement
-(
-  struct Player *player,
-  struct YellowPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-  int playerCount = getPlayerCountOfCell(cells[cellNo], player->color);
-  diceNumber /= playerCount;
-
-  if (diceNumber == 0)
-  {
-    return;
-  }
-
-  int movableCellCount =
-    getMovableCellCount(
-      cellNo,
-      diceNumber,
-      player->pieces[pieceIndex].clockWise,
-      playerCount,
-      cells,
-      player->color
-    );
-  
-  if (movableCellCount == 0)
-  {
-    return;
-  }
-
-  if (movableCellCount == diceNumber)
-  {
-    piecePriorities[pieceIndex].canFullMove = true;
-  }
-  else if (movableCellCount != 0)
-  {
-    piecePriorities[pieceIndex].canPartialMove = true;
-  }
-
-  if (piecePriorities[pieceIndex].canFullMove || piecePriorities[pieceIndex].canPartialMove)
-  {
-    piecePriorities[pieceIndex].canExitBlock = true;
-  }
-
-  if (!piecePriorities[pieceIndex].canExitBlock)
-  {
-    int directionConstant = (player->pieces[pieceIndex].blockClockWise) ? 1 : -1;
-    int finalCellNo = getCorrectCellCount(cellNo + (directionConstant * movableCellCount));
-    int enemyCount = getEnemyCountOfCell(cells[finalCellNo], player->color);
-    
-    if (enemyCount != 0 && !isBlocked(playerCount, enemyCount))
-    {
-      piecePriorities[pieceIndex].canAttack = true;
-    }
-  }
-
-}
 
 void validateYellowPieceImportance
 (
-  struct YellowPriority *piecePriorities,
-  int *pieceImportance,
-  int pieceIndex
+  struct YellowPriority *piecePriorities, int *pieceImportance, int pieceIndex
 )
 {
   int maxPriority = MAX_PRIORITY;
@@ -2938,282 +2175,10 @@ void validateYellowPieceImportance
   }
 }
 
-int getIndexOfSelectedYellowPiece
-(
-  struct Piece *pieces,
-  struct Piece *cells[][PIECE_NO],
-  int *pieceImportance,
-  int diceNumber
-)
-{
-  int selectedPieceIndex = 0;
-  int maxPriority = EMPTY;
-
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    if (pieceImportance[pieceIndex] > maxPriority)
-    {
-      maxPriority = pieceImportance[pieceIndex];
-      selectedPieceIndex = pieceIndex;
-    }
-  }
-
-  return selectedPieceIndex;
-}
-
-void finalizeYellowMovement
-(
-  struct Player *player,
-  int selectedPieceIndex, 
-  int diceNumber, 
-  struct Piece *cells[][PIECE_NO], 
-  bool canExitBlock
-)
-{
-  if (player->pieces[selectedPieceIndex].cellNo == BASE && diceNumber == MAX_DICE_VALUE)
-  {
-    moveFromBase(player, &player->pieces[selectedPieceIndex], cells[getStartIndex(player->color)]);
-  }
-  else if ((player->pieces[selectedPieceIndex].cellNo != BASE && player->pieces[selectedPieceIndex].cellNo < MAX_STANDARD_CELL))
-  {
-    if (isBlockade(cells[player->pieces[selectedPieceIndex].cellNo]) && !canExitBlock)
-    {
-      moveBlock(&player->pieces[selectedPieceIndex], diceNumber, cells);
-    }
-    else
-    {
-      int cellIndexOfPiece = EMPTY;
-      for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
-      { 
-        if (cells[player->pieces[selectedPieceIndex].cellNo][cellIndex] == &player->pieces[selectedPieceIndex])
-        {
-          cellIndexOfPiece = cellIndex;
-          break;
-        }
-      }
-      move(&player->pieces[selectedPieceIndex], cellIndexOfPiece, diceNumber, cells);
-    }
-  }
-  else if (player->pieces[selectedPieceIndex].cellNo >= MAX_STANDARD_CELL)
-  {
-    moveInHomeStraight(&player->pieces[selectedPieceIndex], diceNumber);
-  }
-  else
-  {
-    printf("No moves can be made by piece %s\n", getName(player->color));
-  }
-}
-
-void blueMoveParse(struct Player *players, int yellowPlayerIndex, int diceNumber, int curMysteryCell, struct Piece *cells[][PIECE_NO])
-{
-  struct Player *player = &players[yellowPlayerIndex];
-
-  struct BluePriority piecePriorities[PIECE_NO] =
-  {
-    [0 ... PIECE_NO - 1] = { false, false , false, false }
-  };
-
-  static int previousPieceIndex = -1;
-
-  // do complete movement validation for each pieces
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    // check mystery effects
-    diceNumber = getDiceValueAfterMysteryEffect(diceNumber, player, pieceIndex);
-
-    if (!initialBlueMovementCheck(player, piecePriorities, cells, pieceIndex, diceNumber))
-    {
-      continue;
-    }
-
-    validateSingleBlueMovement(player, piecePriorities, cells, pieceIndex, diceNumber, curMysteryCell);
-
-    bool isPartOfBlockade = isBlockade(cells[player->pieces[pieceIndex].cellNo]);
-
-    // perform block movement check if possible
-    if (isPartOfBlockade)
-    {
-      validateBlockBlueMovement(player, piecePriorities, cells, pieceIndex, diceNumber, curMysteryCell);
-    }
-  }
-
-  // variables to track piece importance
-  int pieceImportance[] = { 0, 0, 0, 0 };
-
-  // assign piece validation importance
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    validateBluePieceImportance(piecePriorities, pieceImportance, pieceIndex, previousPieceIndex);
-  }
-
-  int selectedPieceIndex = getIndexOfSelectedBluePiece(player->pieces, cells, pieceImportance, diceNumber);
-  previousPieceIndex = selectedPieceIndex;
-
-  finalizeBlueMovement(player, selectedPieceIndex, diceNumber, cells, piecePriorities[selectedPieceIndex].canExitBlock);
-}
-
-bool initialBlueMovementCheck
-(
-  struct Player *player,
-  struct BluePriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber 
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-
-  // if piece is already at home, no movement can be applied!
-  if (diceNumber == 0)
-  {
-    return false;
-  }
-
-  if (cellNo >= MAX_STANDARD_CELL)
-  {
-    if (cellNo < HOME && canMoveInHomeStraight(cellNo, diceNumber))
-    {
-      piecePriorities[pieceIndex].canFullMove = true;
-    }
-    return false;
-  }
-
-  if (cellNo == BASE)
-  {
-    return false;
-  }
-
-  return true; 
-}
-
-void validateSingleBlueMovement
-(
-  struct Player *player,
-  struct BluePriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber,
-  int curMysteryCell
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-  bool clockWise = player->pieces[pieceIndex].clockWise;
-  int playerCount = 1;
-
-  int movableCellCount = 
-    getMovableCellCount
-    (
-      cellNo,
-      diceNumber, 
-      player->pieces[pieceIndex].clockWise,
-      playerCount,
-      cells,
-      player->color
-    );
-
-  if (movableCellCount == 0)
-  {
-    return;
-  }
-
-  if (movableCellCount == diceNumber)
-  {
-    piecePriorities[pieceIndex].canFullMove = true;
-  }
-  else if (movableCellCount != 0)
-  {
-    piecePriorities[pieceIndex].canPartialMove = true;
-  }
-
-  int directionConstant = (player->pieces[pieceIndex].clockWise) ? 1 : -1;
-  int finalCellNo = getCorrectCellCount(cellNo + (directionConstant * movableCellCount));
-
-  if (curMysteryCell != EMPTY)
-  {
-    if (!clockWise && finalCellNo == curMysteryCell)
-    {
-      piecePriorities[pieceIndex].preferToMove = true;
-    }
-
-    if (clockWise && finalCellNo != curMysteryCell)
-    {
-      piecePriorities[pieceIndex].preferToMove = true;
-    }
-  }
-}
-
-void validateBlockBlueMovement
-(
-  struct Player *player,
-  struct BluePriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber,
-  int curMysteryCell
-)
-{
-  int cellNo = player->pieces[pieceIndex].cellNo;
-  int playerCount = getPlayerCountOfCell(cells[cellNo], player->color);
-  bool blockClockWise = player->pieces[pieceIndex].blockClockWise;
-  diceNumber /= playerCount;
-
-  if (diceNumber == 0)
-  {
-    return;
-  }
-
-  int movableCellCount =
-    getMovableCellCount(
-      cellNo,
-      diceNumber,
-      player->pieces[pieceIndex].clockWise,
-      playerCount,
-      cells,
-      player->color
-    );
-  
-  if (movableCellCount == 0)
-  {
-    return;
-  }
-
-  if (movableCellCount == diceNumber)
-  {
-    piecePriorities[pieceIndex].canFullMove = true;
-  }
-  else if (movableCellCount != 0)
-  {
-    piecePriorities[pieceIndex].canPartialMove = true;
-  }
-
-   if (piecePriorities[pieceIndex].canFullMove || piecePriorities[pieceIndex].canPartialMove)
-  {
-    piecePriorities[pieceIndex].canExitBlock = true;
-  }
-
-  if (!piecePriorities[pieceIndex].canExitBlock)
-  {
-    int directionConstant = (player->pieces[pieceIndex].blockClockWise) ? 1 : -1;
-    int finalCellNo = getCorrectCellCount(cellNo + (directionConstant * movableCellCount));
-
-    if (!blockClockWise && finalCellNo == curMysteryCell)
-    {
-      piecePriorities[pieceIndex].preferToMove = true;
-    }
-
-    if (blockClockWise && finalCellNo != curMysteryCell)
-    {
-      piecePriorities[pieceIndex].preferToMove = true;
-    }
-  }
-}
 
 void validateBluePieceImportance
 (
-  struct BluePriority *piecePriorities,
-  int *pieceImportance,
-  int pieceIndex,
-  int previousPieceIndex
+  struct BluePriority *piecePriorities,int *pieceImportance,int pieceIndex,int previousPieceIndex
 )
 {
   int maxPriority = MAX_PRIORITY;
@@ -3244,71 +2209,6 @@ void validateBluePieceImportance
   }
 }
 
-int getIndexOfSelectedBluePiece
-(
-  struct Piece *pieces,
-  struct Piece *cells[][PIECE_NO],
-  int *pieceImportance,
-  int diceNumber
-)
-{
-  int selectedPieceIndex = 0;
-  int maxPriority = EMPTY;
-
-  for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
-  {
-    if (pieceImportance[pieceIndex] > maxPriority)
-    {
-      maxPriority = pieceImportance[pieceIndex];
-      selectedPieceIndex = pieceIndex;
-    }
-  }
-
-  return selectedPieceIndex;
-}
-
-void finalizeBlueMovement
-(
-  struct Player *player,
-  int selectedPieceIndex, 
-  int diceNumber, 
-  struct Piece *cells[][PIECE_NO], 
-  bool canExitBlock
-)
-{
-  if (player->pieces[selectedPieceIndex].cellNo == BASE && diceNumber == MAX_DICE_VALUE)
-  {
-    moveFromBase(player, &player->pieces[selectedPieceIndex], cells[getStartIndex(player->color)]);
-  }
-  else if ((player->pieces[selectedPieceIndex].cellNo != BASE && player->pieces[selectedPieceIndex].cellNo < MAX_STANDARD_CELL))
-  {
-    if (isBlockade(cells[player->pieces[selectedPieceIndex].cellNo]) && !canExitBlock)
-    {
-      moveBlock(&player->pieces[selectedPieceIndex], diceNumber, cells);
-    }
-    else
-    {
-      int cellIndexOfPiece = EMPTY;
-      for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
-      { 
-        if (cells[player->pieces[selectedPieceIndex].cellNo][cellIndex] == &player->pieces[selectedPieceIndex])
-        {
-          cellIndexOfPiece = cellIndex;
-          break;
-        }
-      }
-      move(&player->pieces[selectedPieceIndex], cellIndexOfPiece, diceNumber, cells);
-    }
-  }
-  else if (player->pieces[selectedPieceIndex].cellNo >= MAX_STANDARD_CELL)
-  {
-    moveInHomeStraight(&player->pieces[selectedPieceIndex], diceNumber);
-  }
-  else
-  {
-    printf("No moves can be made by piece %s\n", getName(player->color));
-  }
-}
 
 /* Output Display functions
  */
@@ -3381,12 +2281,8 @@ void displayTeleportationMessage(char* playerName, int count, struct Piece **pie
 
 void displayMovablePieceStatus
 (
-  int movableCellCount,
-  int diceNumber,
-  char *playerName,
-  struct Piece *piece,
-  int finalCellNo,
-  struct Piece *cell[PIECE_NO]
+  int movableCellCount, int diceNumber, char *playerName,struct Piece *piece,
+  int finalCellNo, struct Piece *cell[PIECE_NO]
 )
 {
   if (movableCellCount == 0)
@@ -3424,12 +2320,9 @@ void displayMovablePieceStatus
 }
 
 void displayMovableBlockStatus(
-  int movableCellCount,
-  int diceNumber,
-  char *playerName,
-  struct Piece *piece,
-  int finalCellNo,
-  struct Piece *cell[PIECE_NO]
+  int movableCellCount, int diceNumber,
+  char *playerName, struct Piece *piece,
+  int finalCellNo, struct Piece *cell[PIECE_NO]
 )
 {
   if (movableCellCount == 0)
@@ -3546,21 +2439,6 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
         // capture count should be calculated after each move
         // to prevent infinite loops
         int captureCount = getCaptureCountOfPlayer(&players[playerIndex]);
-        // switch (players[playerIndex].color)
-        // {
-        //   case RED:
-        //     redMoveParse(players, playerIndex, diceNumber, standardCells);
-        //     break;
-        //   case GREEN:
-        //     greenMoveParse(players, playerIndex, diceNumber, standardCells);
-        //     break;
-        //   case YELLOW:
-        //     yellowMoveParse(players, playerIndex, diceNumber, standardCells);
-        //     break;
-        //   case BLUE:
-        //     blueMoveParse(players, playerIndex, diceNumber, game->mysteryCellNo, standardCells);
-        //     break;
-        // }
 
         moveParse(players, playerIndex, diceNumber, standardCells, game->mysteryCellNo);
         minConsecutive++;
@@ -3630,24 +2508,5 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
     {
       break;
     }
-
-    // for (int i = 0; i < MAX_STANDARD_CELL; i++)
-    // {
-    //   for (int j = 0; j < PIECE_NO; j++)
-    //   {
-    //     if (standardCells[i][j] == NULL)
-    //     {
-    //       printf("[%d][%d] = NULL\n", i, j);
-    //     }
-    //     else
-    //     {
-    //       printf("[%d][%d] = %p\n", i, j, standardCells[i][j]);
-    //     }
-    //   }
-    // }
-    // for (int p = 0; p < PIECE_NO; p++)
-    // {
-    //   printf("%d = %p\n", p, &players[2].pieces[p]);
-    // }
   }
 }
