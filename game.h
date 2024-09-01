@@ -63,7 +63,7 @@ int getMysteryEffect();
 void formBlock(struct Piece *cell[PIECE_NO]);
 void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO]);
 void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PIECE_NO]);
-void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece, char *playerName, char *pieceName);
+void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece, char *playerName, char *pieceName, bool isPartOfBlockade);
 void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *cells[][PLAYER_NO]);
 int getDiceValueAfterMysteryEffect(int diceNumber, struct Player *player, int pieceIndex);
 void resetPiece(struct Piece *piece);
