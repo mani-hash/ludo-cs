@@ -10,3 +10,4 @@ main
 *.aux
 *.log
 *.gz
+*.toc

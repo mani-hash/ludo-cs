@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #define PLAYER_NO 4
 #define PIECE_NO 4
 #define EMPTY -999
@@ -48,18 +49,19 @@ struct MysteryEffects
   int effectActiveRounds;
   int diceMultiplier;
   int diceDivider;
-};
+} __attribute__((aligned(4)));
 
 struct Piece
 {
   int cellNo;
   int captured;
-  char name[3];
+  int noOfApproachPasses;
   bool clockWise;
   bool blockClockWise;
-  int noOfApproachPasses;
+  uint8_t reserved : 6; 
+  char name[3];
   struct MysteryEffects effect;
-};
+} __attribute__((aligned(4)));
 
 struct Game
 {
@@ -71,14 +73,14 @@ struct Game
   int order[PLAYER_NO];
   int winners[PLAYER_NO];
   int prevMysteryCell;
-};
+} __attribute__((aligned(4)));
 
 struct Player
 {
   int startIndex;
   struct Piece pieces[4];
   enum Color color;
-};
+} __attribute__((aligned(4)));
 
 struct RedPriority
 {
@@ -88,7 +90,7 @@ struct RedPriority
   bool canAttack;
   bool canFormBlock;
   bool canExitBlock;
-};
+} __attribute__((aligned(4)));
 
 struct GreenPriority
 {
@@ -97,7 +99,7 @@ struct GreenPriority
   bool canFullMove;
   bool canPartialMove;
   bool canFormBlock;
-};
+} __attribute__((aligned(4)));
 
 struct YellowPriority
 {
@@ -106,7 +108,7 @@ struct YellowPriority
   bool canPartialMove;
   bool canAttack;
   bool canExitBlock;
-};
+} __attribute__((aligned(4)));
 
 struct BluePriority
 {
@@ -114,7 +116,7 @@ struct BluePriority
   bool canPartialMove;
   bool preferToMove;
   bool canExitBlock;
-};
+} __attribute__((aligned(4)));
 
 union PiecePriority
 {
@@ -122,6 +124,6 @@ union PiecePriority
   struct GreenPriority *greenPriority;
   struct YellowPriority *yellowPriority;
   struct BluePriority *bluePriority;
-};
+} __attribute__((aligned(8)));
 
 #endif // !TYPES_H
