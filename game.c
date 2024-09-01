@@ -1620,37 +1620,23 @@ void moveParse(struct Player *players, int playerIndex, int diceNumber, struct P
   {
     case RED:
       blockMoveCondition = !piecePriorities.redPriority[selectedPieceIndex].canExitBlock;
-      break;
-    case GREEN:
-      blockMoveCondition = piecePriorities.greenPriority[selectedPieceIndex].isBlockMovable;
-      break;
-    case YELLOW:
-      blockMoveCondition = !piecePriorities.yellowPriority[selectedPieceIndex].canExitBlock;
-      break;
-    case BLUE:
-      blockMoveCondition = !piecePriorities.bluePriority[selectedPieceIndex].canExitBlock;
-      break;
-  }
-
-
-  finalizeMovement(player, selectedPieceIndex, diceNumber, cells, blockMoveCondition);
-
-  // free memory
-  switch (player->color)
-  {
-    case RED:
       free(piecePriorities.redPriority);
       break;
     case GREEN:
+      blockMoveCondition = piecePriorities.greenPriority[selectedPieceIndex].isBlockMovable;
       free(piecePriorities.greenPriority);
       break;
     case YELLOW:
+      blockMoveCondition = !piecePriorities.yellowPriority[selectedPieceIndex].canExitBlock;
       free(piecePriorities.yellowPriority);
       break;
     case BLUE:
+      blockMoveCondition = !piecePriorities.bluePriority[selectedPieceIndex].canExitBlock;
       free(piecePriorities.bluePriority);
       break;
   }
+
+  finalizeMovement(player, selectedPieceIndex, diceNumber, cells, blockMoveCondition);
 }
 
 bool initialMovementCheck
