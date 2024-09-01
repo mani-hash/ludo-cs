@@ -1,6 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <stdbool.h>
 #include "types.h"
 
@@ -258,5 +261,8 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
 bool hasPlayerWon(struct Piece *pieces);
 bool skipPlayerIfWon(int *winners, int curWinIndex, int playerIndex);
 bool isGameOver(struct Game *game, struct Player *players);
+
+// Main game execution function
+void playGame();
 
 #endif // !GAME
