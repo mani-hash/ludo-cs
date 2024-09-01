@@ -6,3 +6,7 @@ tests.sh
 .*
 game
 main
+*.txt
+*.aux
+*.log
+*.gz
