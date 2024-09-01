@@ -2431,6 +2431,29 @@ void displayMovableBlockStatus(
   }
 }
 
+void displayWinners(struct Game *game, struct Player *players)
+{
+  printf("=============================================\n\n");
+  printf("Rounds completed => %d\n\n", game->rounds);
+
+  if (game->winners[0] != EMPTY)
+  {
+    printf("%s player wins!!!\n\n", getName(players[game->winners[0]].color));
+  }
+  else
+  {
+    printf("No players have won the game. Game stopped due to unavoidable reasons\n");
+    return;
+  }
+
+  printf("============= Rank of players ===============\n");
+  printf("1st place => %s\n", game->winners[0] != EMPTY ? getName(players[game->winners[0]].color) : "Error");
+  printf("2nd place => %s\n", game->winners[1] != EMPTY ? getName(players[game->winners[1]].color) : "Error");
+  printf("3rd place => %s\n", game->winners[2] != EMPTY ? getName(players[game->winners[2]].color) : "Error");
+  printf("4th place => %s\n", game->winners[3] != EMPTY ? getName(players[game->winners[3]].color) : "Error");
+
+}
+
 /* Functions for game loop
  */
 
@@ -2500,18 +2523,8 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
   while (true)
   {
     // stop game loop after 3 players have reached HOME
-    if (game->winIndex == PLAYER_NO - 1)
+    if (isGameOver(game, players))
     {
-      // find the 4th place player
-      for (int playerIndex = 0; playerIndex < PLAYER_NO; playerIndex++)
-      {
-        if (!hasPlayerWon(players[playerIndex].pieces))
-        {
-          game->winners[game->winIndex] = playerIndex;
-          break;
-        }
-      }
-      printf("Game has ended successfully!\n");
       break;
     }
 
@@ -2554,6 +2567,11 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
           char *playerName = getName(players[playerIndex].color);
           game->winners[game->winIndex] = playerIndex;
           game->winIndex++;
+
+          if (game->winIndex == 0)
+          {
+            printf("%s has won!!\n", playerName);
+          }
 
           printf("All pieces of %s has reached home\n", playerName);
           printf("Rank of %s player is %d\n\n", playerName, game->winIndex);
@@ -2601,13 +2619,11 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
     
     printf("\n");
 
-
     limit++;
 
     //limit loop stop
     if (limit >= maxLimit)
     {
-
       displayWinners(game, players);
       break;
     }
@@ -2616,7 +2632,7 @@ void mainGameLoop(struct Player *players, struct Game *game, struct Piece *stand
   displayWinners(game, players);
 }
 
-/* Win condition methods
+/* Win/game end condition methods
   */
 bool hasPlayerWon(struct Piece *pieces)
 {
@@ -2650,25 +2666,22 @@ bool skipPlayerIfWon(int *winners, int curWinIndex, int playerIndex)
   return false;
 }
 
-void displayWinners(struct Game *game, struct Player *players)
+bool isGameOver(struct Game *game, struct Player *players)
 {
-  printf("=============================================\n");
-  printf("Rounds completed => %d\n", game->rounds);
-
-  if (game->winners[0] != EMPTY)
+  if (game->winIndex == PLAYER_NO - 1)
   {
-    printf("Winner of the match is %s\n", getName(players[game->winners[0]].color));
-  }
-  else
-  {
-    printf("No players have won the game. Game stopped due to unavoidable reasons\n");
-    return;
+    // find the 4th place player
+    for (int playerIndex = 0; playerIndex < PLAYER_NO; playerIndex++)
+    {
+      if (!hasPlayerWon(players[playerIndex].pieces))
+      {
+        game->winners[game->winIndex] = playerIndex;
+        break;
+      }
+    }
+    printf("Game has ended successfully!\n");
+    return true;
   }
 
-  printf("============= Rank of players ===============\n");
-  printf("1st place => %s\n", game->winners[0] != EMPTY ? getName(players[game->winners[0]].color) : "Error");
-  printf("2nd place => %s\n", game->winners[1] != EMPTY ? getName(players[game->winners[1]].color) : "Error");
-  printf("3rd place => %s\n", game->winners[2] != EMPTY ? getName(players[game->winners[2]].color) : "Error");
-  printf("4th place => %s\n", game->winners[3] != EMPTY ? getName(players[game->winners[3]].color) : "Error");
-
+  return false;
 }
