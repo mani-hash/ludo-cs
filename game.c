@@ -52,6 +52,12 @@ struct Player* initializePlayers()
 {
   struct Player *players = (struct Player*)malloc(PLAYER_NO * sizeof(struct Player));
 
+  if (players == NULL)
+  {
+    printf("Failed to allocate memory\n");
+    exit(0);
+  }
+
   players[0] = createPlayer(YELLOW_START, 'Y', YELLOW);
 
   players[1] = createPlayer(BLUE_START, 'B', BLUE);
@@ -1500,6 +1506,13 @@ union PiecePriority getPriorities(enum Color color)
   {
     case RED:
       struct RedPriority *redPriorities = malloc(PIECE_NO * sizeof(struct RedPriority));
+
+      if (redPriorities == NULL)
+      {
+        printf("Failed to allocate memory\n");
+        exit(0);
+      }
+
       for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
       {
         redPriorities[pieceIndex].canAttack = false;
@@ -1514,6 +1527,12 @@ union PiecePriority getPriorities(enum Color color)
     
     case GREEN:
       struct GreenPriority *greenPriorities = malloc(PIECE_NO * sizeof(struct GreenPriority));
+
+      if (greenPriorities == NULL)
+      {
+        printf("Failed to allocate memory\n");
+        exit(0);
+      }
       for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
       {
         greenPriorities[pieceIndex].canFormBlock = false;
@@ -1527,6 +1546,12 @@ union PiecePriority getPriorities(enum Color color)
 
     case YELLOW:
       struct YellowPriority *yellowPriorities = malloc(PIECE_NO * sizeof(struct YellowPriority));
+
+      if (yellowPriorities == NULL)
+      {
+        printf("Failed to allocate memory\n");
+        exit(0);
+      }
       for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
       {
         yellowPriorities[pieceIndex].canAttack = false;
@@ -1540,6 +1565,11 @@ union PiecePriority getPriorities(enum Color color)
     
     case BLUE:
       struct BluePriority *bluePriorities = malloc(PIECE_NO * sizeof(struct BluePriority));
+      if (bluePriorities == NULL)
+      {
+        printf("Failed to allocate memory\n");
+        exit(0);
+      }
       for (int pieceIndex = 0; pieceIndex < PIECE_NO; pieceIndex++)
       {
         bluePriorities[pieceIndex].canExitBlock = false;
