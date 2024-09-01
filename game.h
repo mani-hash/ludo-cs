@@ -1,6 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <stdbool.h>
 #include "types.h"
 
@@ -63,8 +66,14 @@ int getMysteryEffect();
 void formBlock(struct Piece *cell[PIECE_NO]);
 void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell[PLAYER_NO]);
 void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PIECE_NO]);
-void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece, char *playerName, char *pieceName);
-void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *cells[][PLAYER_NO]);
+void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece, char *playerName, char *pieceName, bool isPartOfBlockade);
+void applyTeleportation(struct Piece **pieces, int mysteryEffect, int count, struct Piece *cells[][PLAYER_NO]);
+void handleBaseTeleportation
+(
+  struct Piece **pieces, struct Piece *cells[][PIECE_NO], 
+  int count, char *playerName, char *mysteryLocationName
+);
+bool canTeleport(bool isTeleportBlocked, int playerCount, char *playerName, int mysteryLocation);
 int getDiceValueAfterMysteryEffect(int diceNumber, struct Player *player, int pieceIndex);
 void resetPiece(struct Piece *piece);
 void decrementMysteryEffectRounds(struct Piece *pieces);
@@ -87,38 +96,93 @@ bool handleCellToHomeStraight(struct Piece *piece, int diceNumber, int movableCe
 void incrementHomeApproachPasses(struct Piece *piece, struct Piece *cells[][PIECE_NO], int finalCellNo);
 
 // Behavior functions
-void redMoveParse(struct Player *player, int redPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
-bool initialRedMovementCheck
+union PiecePriority getPriorities(enum Color color);
+void moveParse(struct Player *players, int playerIndex, int diceNumber, struct Piece *cells[][PIECE_NO], int curMyseryCell);
+bool initialMovementCheck
 (
   struct Player *player,
-  struct RedPriority *piecePriorities,
+  union PiecePriority *piecePriorities,
   struct Piece *cells[][PIECE_NO],
   int pieceIndex,
   int diceNumber 
 );
-void validateSingleRedMovement
+void initialHomeStraightCheck
+(
+  union PiecePriority *piecePriorities,
+  int pieceIndex,
+  int cellNo,
+  int diceNumber,
+  enum Color color
+);
+void initialBaseCheck
+(
+  union PiecePriority *piecePriorities,
+  struct Piece *startCell[PIECE_NO],
+  int pieceIndex,
+  int cellNo,
+  int diceNumber,
+  enum Color color 
+);
+void validateSingleMovement
 (
   struct Player *player,
-  struct RedPriority *piecePriorities,
+  union PiecePriority *piecePriorities,
   struct Piece *cells[][PIECE_NO],
   int pieceIndex,
-  int diceNumber
+  int diceNumber,
+  int curMysteryCell
 );
-void validateBlockRedMovement(
+void validateBlockMovement
+(
   struct Player *player,
-  struct RedPriority *piecePriorities,
+  union PiecePriority *piecePriorities,
   struct Piece *cells[][PIECE_NO],
   int pieceIndex,
-  int diceNumber
+  int diceNumber,
+  int curMysteryCell
 );
-void validateRedPieceImportance(
-  struct RedPriority *piecePriorities,
-  int *pieceImportance,
+void validateMovableCell
+(
+  union PiecePriority *piecePriorities,
   int pieceIndex,
-  int *canAttackCount,
-  bool isPartofBlockade
+  int movableCellCount,
+  int diceNumber,
+  enum Color color,
+  int playerCount
 );
-int getIndexOfSelectedRedPiece
+void validateFormBlockMovement
+(
+  union PiecePriority *piecePriorities,
+  struct Piece *finalCell[PIECE_NO],
+  int pieceIndex,
+  enum Color color
+);
+void validateCanAttackMovement
+(
+  union PiecePriority *piecePriorities,
+  int pieceIndex,
+  enum Color color,
+  int enemyCount,
+  int playerCount
+);
+void validateExitBlockMovement
+(
+  union PiecePriority *piecePriorities,
+  struct Piece *cells[][PIECE_NO],
+  int pieceIndex,
+  struct Player *player, 
+  int movableCellCount,
+  int curMysteryCell
+);
+void validateBlueMovement
+(
+  union PiecePriority *piecePriorities, 
+  int pieceIndex, 
+  bool clockWise, 
+  int finalCellNo, 
+  int curMysteryCell
+);
+int getIndexOfSelectedPiece
 (
   struct Piece *pieces,
   struct Piece *cells[][PIECE_NO],
@@ -126,157 +190,43 @@ int getIndexOfSelectedRedPiece
   int canAttackCount,
   int diceNumber
 );
-void finalizeRedMovement
+void finalizeMovement
 (
   struct Player *player,
-  int selectedPiece, 
+  int selectedPieceIndex, 
   int diceNumber, 
   struct Piece *cells[][PIECE_NO], 
-  bool canExitBlock
+  bool blockMoveCondition
 );
 
-void greenMoveParse(struct Player *players, int greenPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
-bool initialGreenMovementCheck
-(
-  struct Player *player,
-  struct GreenPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
+void validateRedPieceImportance(
+  struct RedPriority *piecePriorities,
+  int *pieceImportance,
   int pieceIndex,
-  int diceNumber 
+  int *canAttackCount,
+  bool isPartofBlockade
 );
-void validateSingleGreenMovement
-(
-  struct Player *player,
-  struct GreenPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber
-);
-void validateBlockGreenMovement
-(
-  struct Player *player,
-  struct GreenPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber
-);
+
 void validateGreenPieceImportance
 (
   struct GreenPriority *piecePriorities,
   int *pieceImportance,
   int pieceIndex
 );
-int getIndexOfSelectedGreenPiece
-(
-  struct Piece *pieces,
-  struct Piece *cells[][PIECE_NO],
-  int *pieceImportance,
-  int diceNumber
-);
-void finalizeGreenMovement
-(
-  struct Player *player,
-  int selectedPieceIndex, 
-  int diceNumber, 
-  struct Piece *cells[][PIECE_NO],
-  bool canMoveBlock
-);
 
-void yellowMoveParse(struct Player *players, int yellowPlayerIndex, int diceNumber, struct Piece *cells[][PIECE_NO]);
-bool initialYellowMovementCheck
-(
-  struct Player *player,
-  struct YellowPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber 
-);
-void validateSingleYellowMovement
-(
-  struct Player *player,
-  struct YellowPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber
-);
-void validateBlockYellowMovement
-(
-  struct Player *player,
-  struct YellowPriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber
-);
 void validateYellowPieceImportance
 (
   struct YellowPriority *piecePriorities,
   int *pieceImportance,
   int pieceIndex
 );
-int getIndexOfSelectedYellowPiece
-(
-  struct Piece *pieces,
-  struct Piece *cells[][PIECE_NO],
-  int *pieceImportance,
-  int diceNumber
-);
-void finalizeYellowMovement
-(
-  struct Player *player,
-  int selectedPieceIndex, 
-  int diceNumber, 
-  struct Piece *cells[][PIECE_NO], 
-  bool canExitBlock
-);
 
-void blueMoveParse(struct Player *players, int yellowPlayerIndex, int diceNumber, int curMysteryCell, struct Piece *cells[][PIECE_NO]);
-bool initialBlueMovementCheck
-(
-  struct Player *player,
-  struct BluePriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber 
-);
-void validateSingleBlueMovement
-(
-  struct Player *player,
-  struct BluePriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber,
-  int curMysteryCell
-);
-void validateBlockBlueMovement
-(
-  struct Player *player,
-  struct BluePriority *piecePriorities,
-  struct Piece *cells[][PIECE_NO],
-  int pieceIndex,
-  int diceNumber,
-  int curMysteryCell
-);
 void validateBluePieceImportance
 (
   struct BluePriority *piecePriorities,
   int *pieceImportance,
   int pieceIndex,
   int previousPieceIndex
-);
-int getIndexOfSelectedBluePiece
-(
-  struct Piece *pieces,
-  struct Piece *cells[][PIECE_NO],
-  int *pieceImportance,
-  int diceNumber
-);
-void finalizeBlueMovement
-(
-  struct Player *player,
-  int selectedPieceIndex, 
-  int diceNumber, 
-  struct Piece *cells[][PIECE_NO], 
-  bool canExitBlock
 );
 
 // Output functions
@@ -300,10 +250,19 @@ void displayMovableBlockStatus(
   int finalCellNo,
   struct Piece *cell[PIECE_NO]
 );
+void displayWinners(struct Game *game, struct Player *players);
 
 // game loops
 void initialGameLoop(struct Player *players, struct Game *game);
 void handleMysteryCellLoop(struct Game *game, struct Player *players, struct Piece *cells[][PIECE_NO]);
 void mainGameLoop(struct Player *players, struct Game *game, struct Piece *standardCells[][PLAYER_NO]);
+
+// check win/end functions
+bool hasPlayerWon(struct Piece *pieces);
+bool skipPlayerIfWon(int *winners, int curWinIndex, int playerIndex);
+bool isGameOver(struct Game *game, struct Player *players);
+
+// Main game execution function
+void playGame();
 
 #endif // !GAME

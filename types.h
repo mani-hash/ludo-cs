@@ -8,8 +8,6 @@
 #define MAX_DICE_VALUE 6
 #define MAX_STANDARD_CELL 52
 #define HOME_STRAIGHT_DISTANCE 5
-#define MAX_HOME_STRAIGHT 20
-#define MAX_COLORS 4
 #define APPROACH_DIFFERENCE 2
 #define MYSTERY_LOCATIONS 6
 #define MAX_PRIORITY 10
@@ -69,8 +67,9 @@ struct Game
   int mysteryCellNo;
   int mysteryRounds;
   int roundsTillMysteryCell;
+  int winIndex;
   int order[PLAYER_NO];
-  int win[PLAYER_NO];
+  int winners[PLAYER_NO];
   int prevMysteryCell;
 };
 
@@ -115,6 +114,14 @@ struct BluePriority
   bool canPartialMove;
   bool preferToMove;
   bool canExitBlock;
+};
+
+union PiecePriority
+{
+  struct RedPriority *redPriority;
+  struct GreenPriority *greenPriority;
+  struct YellowPriority *yellowPriority;
+  struct BluePriority *bluePriority;
 };
 
 #endif // !TYPES_H
