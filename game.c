@@ -849,7 +849,11 @@ void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PIECE_NO])
   while (repeat);
 }
 
-void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *piece, char *playerName, char *pieceName)
+void applyMysteryEffect
+(
+  int mysteryEffect, int mysteryLocation, struct Piece *piece,
+  char *playerName, char *pieceName, bool isPartOfBlockade
+)
 {
   switch (mysteryEffect)
   {
@@ -877,7 +881,14 @@ void applyMysteryEffect(int mysteryEffect, int mysteryLocation, struct Piece *pi
       printf("%s piece %s attends meeting and cannot move for the next four rounds\n", playerName, pieceName);
       break;
     case 3: // pita kotuwa
-      if (piece->clockWise)
+      bool isClockWise = piece->clockWise;
+
+      if (isPartOfBlockade)
+      {
+        isClockWise = piece->blockClockWise;
+      }
+
+      if (isClockWise)
       {
         printf("%s piece %s which was moving clockwise, has changed to moving counter-clockwise\n", playerName, pieceName);
         piece->clockWise = false;
@@ -995,14 +1006,16 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
       {
         // get direction of piece before applying mystery effect
         bool prevClockWise = pieces[pieceIndex]->clockWise;
+        bool isPartOfBlockade = false;
 
         if (count > 1)
         {
+          isPartOfBlockade = true;
           prevClockWise = pieces[pieceIndex]->blockClockWise;
         }
 
         cells[mysteryLocation][cellIndex] = pieces[pieceIndex];
-        applyMysteryEffect(mysteryEffect, mysteryLocation, pieces[pieceIndex], playerName, pieces[pieceIndex]->name);
+        applyMysteryEffect(mysteryEffect, mysteryLocation, pieces[pieceIndex], playerName, pieces[pieceIndex]->name, isPartOfBlockade);
 
         if (mysteryEffect == getMysteryEffectNumber(PITA_KOTUWA) && !prevClockWise)
         {
@@ -1408,11 +1421,8 @@ void handlePieceLandOnMysteryCell(struct Game *game, struct Player *player, stru
     }
   }
 
-  if (pieces != NULL)
-  {
-    int mysteryEffect = getMysteryEffect();
-    applyTeleportation(pieces, mysteryEffect, cells);
-  }
+  int mysteryEffect = getMysteryEffect();
+  applyTeleportation(pieces, mysteryEffect, cells);
 }
 
 bool handleCellToHomeStraight(struct Piece *piece, int diceNumber, int movableCellCount, int finalCellNo, struct Piece *cells[][PIECE_NO])
