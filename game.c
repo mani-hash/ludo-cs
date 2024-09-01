@@ -922,40 +922,15 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
 
   if (mysteryLocation == BASE)
   {
-    // Nullify previous cell array elements
-    for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
-    {
-      cells[pieces[0]->cellNo][cellIndex] = NULL;
-    }
-    
-    for (int pieceIndex = 0; pieceIndex < count; pieceIndex++)
-    {
-      pieces[pieceIndex]->cellNo = BASE;
-      resetPiece(pieces[pieceIndex]);
-    }
-    displayTeleportationMessage(playerName, count, pieces, mysteryLocationName);
+    handleBaseTeleportation(pieces, cells, count, playerName, mysteryLocationName);
     return;
   }
 
   int enemyCount = getEnemyCountOfCell(cells[mysteryLocation], color);
   int playerCount = getPlayerCountOfCell(cells[mysteryLocation], color);
 
-  if (isBlocked(count, enemyCount))
+  if (!canTeleport(isBlocked(count, enemyCount), playerCount, playerName, mysteryLocation))
   {
-    printf("There is a block in L%d preventing %s from teleporting therefore aborting mystery cell teleportation\n",
-      mysteryLocation,
-      playerName
-    );
-    return;
-  }
-
-  if (playerCount != 0)
-  {
-    printf("Mystery effect cancelled since there is already a %s pieces on L%d",
-      playerName,
-      mysteryLocation
-    );
-
     return;
   }
 
@@ -1033,6 +1008,50 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
     int newMysteryEffect = getMysteryEffectNumber(KOTUWA);
     applyTeleportation(newPieces, newMysteryEffect, cells);
   }
+}
+
+void handleBaseTeleportation
+(
+  struct Piece **pieces, struct Piece *cells[][PIECE_NO], 
+  int count, char *playerName, char *mysteryLocationName
+)
+{
+  // Nullify previous cell array elements
+  for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
+  {
+    cells[pieces[0]->cellNo][cellIndex] = NULL;
+  }
+  
+  for (int pieceIndex = 0; pieceIndex < count; pieceIndex++)
+  {
+    pieces[pieceIndex]->cellNo = BASE;
+    resetPiece(pieces[pieceIndex]);
+  }
+  displayTeleportationMessage(playerName, count, pieces, mysteryLocationName);
+}
+
+bool canTeleport(bool isTeleportBlocked, int playerCount, char *playerName, int mysteryLocation)
+{
+  if (isTeleportBlocked)
+  {
+    printf("There is a block in L%d preventing %s from teleporting therefore aborting mystery cell teleportation\n",
+      mysteryLocation,
+      playerName
+    );
+    return false;
+  }
+
+  if (playerCount != 0)
+  {
+    printf("Mystery effect cancelled since there is already a %s pieces on L%d",
+      playerName,
+      mysteryLocation
+    );
+
+    return false;
+  }
+
+  return true;
 }
 
 int getDiceValueAfterMysteryEffect(int diceNumber, struct Player *player, int pieceIndex)
