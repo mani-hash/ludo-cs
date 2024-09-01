@@ -170,7 +170,7 @@ enum Color getPieceColor(char colorLetter)
       break;
   }
 
-  // tryValueAndCatchError(color, '=', EMPTY);
+  tryValueAndCatchError(color, '=', EMPTY);
   
   return color;
 }
@@ -195,11 +195,11 @@ char* getName(enum Color color)
       break;
   }
 
-  // if (name == NULL)
-  // {
-  //   displayErrors();
-  //   exit(0);
-  // }
+  if (name == NULL)
+  {
+    displayErrors();
+    exit(0);
+  }
   return name;
 }
 
@@ -222,7 +222,7 @@ int getStartIndex(enum Color color)
       break;
   }
 
-  // tryValueAndCatchError(startIndex, '=', EMPTY);
+  tryValueAndCatchError(startIndex, '=', EMPTY);
 
   return startIndex;
 }
@@ -246,7 +246,7 @@ int getApproachIndex(enum Color color)
       break;
   }
 
-  // tryValueAndCatchError(approachIndex, '=', EMPTY);
+  tryValueAndCatchError(approachIndex, '=', EMPTY);
 
   return approachIndex;
 }
@@ -262,7 +262,7 @@ int getNoOfPiecesInBase(struct Player *player)
     }
   }
 
-  // tryValueAndCatchError(count, '>', PIECE_NO);
+  tryValueAndCatchError(count, '>', PIECE_NO);
 
   return count;
 }
@@ -292,7 +292,7 @@ int getPlayerCountOfCell(struct Piece *cells[PLAYER_NO], enum Color playerColor)
     }
   }
 
-  // tryValueAndCatchError(count, '>', PIECE_NO);
+  tryValueAndCatchError(count, '>', PIECE_NO);
   
   return count;
 }
@@ -312,7 +312,7 @@ int getEnemyCountOfCell(struct Piece *cell[PLAYER_NO], enum Color playerColor)
     }
   }
 
-  // tryValueAndCatchError(count, '>', PIECE_NO);
+  tryValueAndCatchError(count, '>', PIECE_NO);
 
   return count;
 }
@@ -457,11 +457,11 @@ char *getMysteryLocationName(int mysteryEffect)
       break;
   }
 
-  // if (name == NULL)
-  // {
-  //   displayErrors();
-  //   exit(0);
-  // }
+  if (name == NULL)
+  {
+    displayErrors();
+    exit(0);
+  }
 
   return name;
 }
@@ -832,7 +832,6 @@ void moveFromBase(struct Player *player, struct Piece *piece, struct Piece *cell
 
 void allocateMysteryCell(struct Game *game, struct Piece *pieces[][PIECE_NO])
 {
-  //very inefficient algorithm try to fix it later
   bool repeat = true;
 
   do
@@ -912,13 +911,13 @@ void applyMysteryEffect
   piece->cellNo = mysteryLocation;
 }
 
-void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *cells[][PLAYER_NO])
+void applyTeleportation(struct Piece **pieces, int mysteryEffect, int count, struct Piece *cells[][PLAYER_NO])
 {
   int mysteryLocation = getMysteryLocation(mysteryEffect, pieces[0]);
   char *mysteryLocationName = getMysteryLocationName(mysteryEffect);
   enum Color color = getPieceColor(pieces[0]->name[0]);
-  int count = getPlayerCountOfCell(cells[pieces[0]->cellNo], color);
   char *playerName = getName(color);
+  bool reTeleport = false;
 
   if (mysteryLocation == BASE)
   {
@@ -935,28 +934,21 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
   }
 
   bool captured = false;
+
+  // find if teleportation triggers a piece capture action
   for (int cellIndex = 0; cellIndex < PLAYER_NO; cellIndex++)
   {
-    // turn this if condition check into a function
     if (cells[mysteryLocation][cellIndex] != NULL && getPieceColor(cells[mysteryLocation][cellIndex]->name[0]) != color)
     {
       captured = true;
     }
   }
 
-  // Nullify previous cell array elements
+  // Reset previous position cells
   for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
   {
     cells[pieces[0]->cellNo][cellIndex] = NULL;
   }
-
-  struct Piece *newPieces[count];
-
-  for (int newPieceIndex = 0; newPieceIndex < count; newPieceIndex++)
-  {
-    newPieces[newPieceIndex] = NULL;
-  }
-  int newCount = 0;
 
   // capture the pieces
   if (captured)
@@ -989,24 +981,22 @@ void applyTeleportation(struct Piece **pieces, int mysteryEffect, struct Piece *
           prevClockWise = pieces[pieceIndex]->blockClockWise;
         }
 
-        cells[mysteryLocation][cellIndex] = pieces[pieceIndex];
+        cells[mysteryLocation][cellIndex] = pieces[pieceIndex]; // place the piece in new location
         applyMysteryEffect(mysteryEffect, mysteryLocation, pieces[pieceIndex], playerName, pieces[pieceIndex]->name, isPartOfBlockade);
 
         if (mysteryEffect == getMysteryEffectNumber(PITA_KOTUWA) && !prevClockWise)
         {
-          // printf("new")
-          newPieces[newCount] = pieces[pieceIndex];
-          newCount++;
+          reTeleport = true;
         }
         break;
       }
     }
   }
 
-  if (newCount > 0)
+  if (reTeleport)
   {
     int newMysteryEffect = getMysteryEffectNumber(KOTUWA);
-    applyTeleportation(newPieces, newMysteryEffect, cells);
+    applyTeleportation(pieces, newMysteryEffect, count, cells);
   }
 }
 
@@ -1016,7 +1006,7 @@ void handleBaseTeleportation
   int count, char *playerName, char *mysteryLocationName
 )
 {
-  // Nullify previous cell array elements
+  // Reset previous position cells
   for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
   {
     cells[pieces[0]->cellNo][cellIndex] = NULL;
@@ -1043,7 +1033,7 @@ bool canTeleport(bool isTeleportBlocked, int playerCount, char *playerName, int 
 
   if (playerCount != 0)
   {
-    printf("Mystery effect cancelled since there is already a %s pieces on L%d",
+    printf("Mystery effect cancelled since there is already a %s pieces on L%d\n",
       playerName,
       mysteryLocation
     );
@@ -1077,7 +1067,6 @@ void resetPiece(struct Piece *piece)
   piece->cellNo = BASE;
   piece->captured = 0;
   piece->clockWise = true;
-  // piece->block = false;
   piece->blockClockWise = true;
   piece->noOfApproachPasses = 0;
 
@@ -1139,11 +1128,6 @@ void captureByPiece(struct Piece *piece, struct Piece *cells[][PIECE_NO], int fi
       // clear the pointer
       cells[finalCellNo][cellIndex] = NULL;
 
-      // fix later
-      // printf("%s player now has %d/4 pieces on the board and %d/4 pieces on the base\n",
-      //   enemyName,
-      //   getNoOfPiecesInBase()
-      // );
       break;
     }
   } 
@@ -1179,22 +1163,18 @@ void captureByBlock
     }
   }
 
+  // increment for all pieces of the block
   for (int blockIndex = 0; blockIndex < playerCount; blockIndex++)
   {
     blockPieces[blockIndex]->captured++;
   }
 }
 
-
-// not perfect fix this later
 void separateBlockade(struct Piece *cells[][PIECE_NO], int blockCellNo)
 {
   int cummulativeDistance = MAX_DICE_VALUE;
   enum Color color = getPlayerColorInCell(cells[blockCellNo]);
   int playerCount = getPlayerCountOfCell(cells[blockCellNo], color);
-
-  // destroyBlock(cells[blockCellNo]);
-
   int distanceForOneCell = cummulativeDistance/playerCount;
 
   for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
@@ -1232,7 +1212,6 @@ void move(struct Piece *piece, int prevIndex, int diceNumber, struct Piece *cell
   }
 
   // Must NULL this index to avoid cell duplication
-  // prevIndex is possibly passed incorrectly here
   cells[piece->cellNo][prevIndex] = NULL;
 
   if (handleCellToHomeStraight(piece, diceNumber, movableCellCount, finalCellNo, cells))
@@ -1245,7 +1224,8 @@ void move(struct Piece *piece, int prevIndex, int diceNumber, struct Piece *cell
   incrementHomeApproachPasses(piece, cells, finalCellNo);
 
   piece->cellNo = finalCellNo;
-    
+  
+  // trigger capture or form block actions
   if (!isCellEmpty(cells[finalCellNo]))
   {
     if (getEnemyCountOfCell(cells[finalCellNo], color) != 0)
@@ -1258,7 +1238,7 @@ void move(struct Piece *piece, int prevIndex, int diceNumber, struct Piece *cell
     }
   }
 
-  // place piece in 2d array
+  // place piece in the new position
   for (int cellIndex = 0; cellIndex < PIECE_NO; cellIndex++)
   {
     if (cells[finalCellNo][cellIndex] == NULL)
@@ -1345,7 +1325,7 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
     incrementHomeApproachPasses(blockPieces[blockIndex], cells, finalCellNo);
   }
 
-  // NULL the cell pointers in the array
+  // reset the cell pointers in the array
   for (int cellIndex = 0; cellIndex < playerCount; cellIndex++)
   {
     cells[piece->cellNo][cellIndex] = NULL;
@@ -1353,6 +1333,7 @@ void moveBlock(struct Piece *piece, int diceNumber, struct Piece *cells[][PIECE_
 
   displayMovableBlockStatus(movableCellCount, blockDiceNumber, playerName, piece, finalCellNo, cells[targetFinalCellNo]);
 
+  // triiger capture or form block actions
   if (!isCellEmpty(cells[finalCellNo]))
   {
     if (getEnemyCountOfCell(cells[finalCellNo], color) != 0)
@@ -1409,7 +1390,7 @@ void moveInHomeStraight(struct Piece *piece, int diceNumber)
   }
   else
   {
-    printf("%s piece %s cannot move in homestraight since it has rolled greater value than home", playerName, piece->name);
+    printf("%s piece %s cannot move in homestraight since it has rolled greater value than home\n", playerName, piece->name);
   }
 }
 
@@ -1429,7 +1410,7 @@ void handlePieceLandOnMysteryCell(struct Game *game, struct Player *player, stru
     return;
   }
 
-  struct Piece *pieces[count];
+  struct Piece *pieces[count]; // track pieces that need to be teleported
 
   for (int pieceIndex = 0, pieceCounter = 0; pieceIndex < PIECE_NO; pieceIndex++)
   {
@@ -1441,7 +1422,7 @@ void handlePieceLandOnMysteryCell(struct Game *game, struct Player *player, stru
   }
 
   int mysteryEffect = getMysteryEffect();
-  applyTeleportation(pieces, mysteryEffect, cells);
+  applyTeleportation(pieces, mysteryEffect, count, cells);
 }
 
 bool handleCellToHomeStraight(struct Piece *piece, int diceNumber, int movableCellCount, int finalCellNo, struct Piece *cells[][PIECE_NO])
@@ -1584,6 +1565,7 @@ void moveParse(struct Player *players, int playerIndex, int diceNumber, struct P
   {
     // check mystery effects
     diceNumber = getDiceValueAfterMysteryEffect(diceNumber, player, pieceIndex);
+
     if (!initialMovementCheck(player, &piecePriorities, cells, pieceIndex, diceNumber))
     {
       continue;
@@ -1695,6 +1677,7 @@ void initialHomeStraightCheck
   int cellNo, int diceNumber, enum Color color
 )
 {
+  // check if piece can move in home straight
   if (cellNo < HOME && canMoveInHomeStraight(cellNo, diceNumber))
   {
     switch (color)
@@ -1791,24 +1774,25 @@ void validateSingleMovement
   int directionConstant = (player->pieces[pieceIndex].clockWise) ? 1 : -1;
   int finalCellNo = getCorrectCellCount(cellNo + (directionConstant * movableCellCount));
 
+  // only for blue behavior
   if (player->color == BLUE && curMysteryCell != EMPTY)
   {
     validateBlueMovement(piecePriorities, pieceIndex, clockWise, finalCellNo, curMysteryCell);
 
-    return; // blue checks end here
+    return; // blue validation end here
   }
 
-  // checks for red and green behaviors
+  // only for red and green behaviors
   validateFormBlockMovement(piecePriorities, cells[finalCellNo], pieceIndex, player->color);
 
   if (player->color == GREEN)
   {
-    return; // green check ends here
+    return; // green validation ends here
   }
 
   int enemyCount = getEnemyCountOfCell(cells[finalCellNo], player->color);
 
-  // checks for red and yellow behaviors
+  // only for red and yellow behaviors
   validateCanAttackMovement(piecePriorities, pieceIndex, player->color, enemyCount, playerCount);
 }
 
@@ -1897,6 +1881,7 @@ void validateBlockMovement
   validateExitBlockMovement(piecePriorities, cells, pieceIndex, player, movableCellCount, curMysteryCell);
 }
 
+// check if the cells can be moved through
 void validateMovableCell
 (
   union PiecePriority *piecePriorities, int pieceIndex,
@@ -1973,6 +1958,7 @@ void validateExitBlockMovement
         int finalCellNo = getCorrectCellCount(cellNo + (directionConstant * movableCellCount));
         int enemyCount = getEnemyCountOfCell(cells[finalCellNo], player->color);
         
+        // check if red block can attack
         if (enemyCount != 0 && !isBlocked(playerCount, enemyCount))
         {
           piecePriorities->redPriority[pieceIndex].canAttack = true;
@@ -1991,6 +1977,7 @@ void validateExitBlockMovement
         int finalCellNo = getCorrectCellCount(cellNo + (directionConstant * movableCellCount));
         int enemyCount = getEnemyCountOfCell(cells[finalCellNo], player->color);
         
+        // check if yellow block can attack
         if (enemyCount != 0 && !isBlocked(playerCount, enemyCount))
         {
           piecePriorities->yellowPriority[pieceIndex].canAttack = true;
@@ -2003,6 +1990,7 @@ void validateExitBlockMovement
         piecePriorities->bluePriority[pieceIndex].canExitBlock = true;
       }
 
+      // validate if block can move according to blue's movement requirements
       if (!piecePriorities->bluePriority[pieceIndex].canExitBlock)
       {
         int directionConstant = (blockClockWise) ? 1 : -1;
@@ -2014,6 +2002,7 @@ void validateExitBlockMovement
   }
 }
 
+// blue player's main movement requirement
 void validateBlueMovement
 (
   union PiecePriority *piecePriorities, int pieceIndex,
@@ -2051,7 +2040,7 @@ int getIndexOfSelectedPiece
       selectedPieceIndex = pieceIndex;
     }
 
-    // skip next part of loop if piece is not red
+    // skip to next part of loop if piece is not red
     if (getPieceColor(pieces[pieceIndex].name[0]) != RED)
     {
       continue;
@@ -2081,10 +2070,12 @@ void finalizeMovement
   bool blockMoveCondition
 )
 {
+  // when piece is in base
   if (player->pieces[selectedPieceIndex].cellNo == BASE && diceNumber == MAX_DICE_VALUE)
   {
     moveFromBase(player, &player->pieces[selectedPieceIndex], cells[getStartIndex(player->color)]);
   }
+  // when piece is in board
   else if (player->pieces[selectedPieceIndex].cellNo != BASE && player->pieces[selectedPieceIndex].cellNo < MAX_STANDARD_CELL)
   {
     if (isBlockade(cells[player->pieces[selectedPieceIndex].cellNo]) && blockMoveCondition)
@@ -2105,10 +2096,12 @@ void finalizeMovement
       move(&player->pieces[selectedPieceIndex], cellIndexOfPiece, diceNumber, cells);
     }
   }
+  // when piece is in home straight
   else if (player->pieces[selectedPieceIndex].cellNo >= MAX_STANDARD_CELL)
   {
     moveInHomeStraight(&player->pieces[selectedPieceIndex], diceNumber);
   }
+  // when there are no possible moves
   else
   {
     printf("No moves can be made by piece %s\n", getName(player->color));
@@ -2353,7 +2346,7 @@ void displayMovablePieceStatus
       );
     }
 
-    printf("%s does not have other pieces to move instead of %s piece.",
+    printf("%s does not have other pieces to move instead of %s piece.\n",
       playerName,
       enemyCount != 0 ? "blocked" : "immobile"
     );
@@ -2402,7 +2395,7 @@ void displayMovableBlockStatus(
         piece->cellNo,
         finalCellNo
       );
-      printf("%s does not have other pieces to move instead of %s piece. ", 
+      printf("%s does not have other pieces to move instead of %s piece.\n", 
         enemyCount != 0 ? "blocked" : "immobile",
         playerName
       );
