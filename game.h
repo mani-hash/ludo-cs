@@ -97,6 +97,23 @@ bool initialMovementCheck
   int pieceIndex,
   int diceNumber 
 );
+void initialHomeStraightCheck
+(
+  union PiecePriority *piecePriorities,
+  int pieceIndex,
+  int cellNo,
+  int diceNumber,
+  enum Color color
+);
+void initialBaseCheck
+(
+  union PiecePriority *piecePriorities,
+  struct Piece *startCell[PIECE_NO],
+  int pieceIndex,
+  int cellNo,
+  int diceNumber,
+  enum Color color 
+);
 void validateSingleMovement
 (
   struct Player *player,
@@ -113,6 +130,47 @@ void validateBlockMovement
   struct Piece *cells[][PIECE_NO],
   int pieceIndex,
   int diceNumber,
+  int curMysteryCell
+);
+void validateMovableCell
+(
+  union PiecePriority *piecePriorities,
+  int pieceIndex,
+  int movableCellCount,
+  int diceNumber,
+  enum Color color,
+  int playerCount
+);
+void validateFormBlockMovement
+(
+  union PiecePriority *piecePriorities,
+  struct Piece *finalCell[PIECE_NO],
+  int pieceIndex,
+  enum Color color
+);
+void validateCanAttackMovement
+(
+  union PiecePriority *piecePriorities,
+  int pieceIndex,
+  enum Color color,
+  int enemyCount,
+  int playerCount
+);
+void validateExitBlockMovement
+(
+  union PiecePriority *piecePriorities,
+  struct Piece *cells[][PIECE_NO],
+  int pieceIndex,
+  struct Player *player, 
+  int movableCellCount,
+  int curMysteryCell
+);
+void validateBlueMovement
+(
+  union PiecePriority *piecePriorities, 
+  int pieceIndex, 
+  bool clockWise, 
+  int finalCellNo, 
   int curMysteryCell
 );
 int getIndexOfSelectedPiece
